@@ -47,6 +47,11 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        jenga: {
+          blue: "hsl(var(--jenga-blue))",
+          orange: "hsl(var(--jenga-orange))",
+          lightBg: "hsl(var(--jenga-light-bg))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
