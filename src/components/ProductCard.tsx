@@ -23,8 +23,8 @@ export const ProductCard = ({ name, price, merchant, image, isPinned, onPin }: P
         <Pin className={`w-4 h-4 ${isPinned ? 'fill-accent text-accent' : 'text-background'}`} />
       </button>
       
-      <div className="flex flex-col items-center p-6 space-y-4">
-        <div className="w-32 h-32 rounded-full overflow-hidden bg-muted">
+      <div className="flex items-center p-4 gap-4">
+        <div className="w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-muted">
           <img
             src={image}
             alt={name}
@@ -32,7 +32,7 @@ export const ProductCard = ({ name, price, merchant, image, isPinned, onPin }: P
           />
         </div>
         
-        <div className="text-center space-y-1 w-full">
+        <div className="flex-1 space-y-1">
           <h3 className="font-semibold text-lg text-foreground">{name}</h3>
           <p className="text-sm text-muted-foreground">{merchant}</p>
           <p className="text-xl font-bold text-accent">{price}</p>
