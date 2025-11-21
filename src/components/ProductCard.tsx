@@ -1,7 +1,9 @@
 import { Pin } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 
 interface ProductCardProps {
+  id: string;
   name: string;
   price: string;
   merchant: string;
@@ -10,9 +12,14 @@ interface ProductCardProps {
   onPin?: () => void;
 }
 
-export const ProductCard = ({ name, price, merchant, image, isPinned, onPin }: ProductCardProps) => {
+export const ProductCard = ({ id, name, price, merchant, image, isPinned, onPin }: ProductCardProps) => {
+  const navigate = useNavigate();
+  
   return (
-    <Card className="relative overflow-hidden bg-card hover:shadow-lg transition-all duration-300 group cursor-pointer">
+    <Card 
+      onClick={() => navigate(`/product/${id}`)}
+      className="relative overflow-hidden bg-card hover:shadow-lg transition-all duration-300 group cursor-pointer"
+    >
       <button
         onClick={(e) => {
           e.stopPropagation();

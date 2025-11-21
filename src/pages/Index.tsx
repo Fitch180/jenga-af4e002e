@@ -48,28 +48,28 @@ const MERCHANTS = [
 
 const PRODUCTS = [
   {
-    id: 1,
+    id: "1",
     name: "Light Lamp Shades",
     merchant: "Dar Ceramica Center",
     price: "25,000 Tsh",
     image: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=400&h=400&fit=crop",
   },
   {
-    id: 2,
+    id: "2",
     name: "Tiles Silex Dune 1.42",
     merchant: "ABC Emporio",
     price: "25,000 Tsh",
     image: "https://images.unsplash.com/photo-1600607687644-c7171b42498f?w=400&h=400&fit=crop",
   },
   {
-    id: 3,
+    id: "3",
     name: "Premium Wall Paint",
     merchant: "Elite Hardware",
     price: "45,000 Tsh",
     image: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400&h=400&fit=crop",
   },
   {
-    id: 4,
+    id: "4",
     name: "Modern Sofa Set",
     merchant: "Modern Living",
     price: "1,500,000 Tsh",
@@ -82,7 +82,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState("merchants");
   const [activeCategory, setActiveCategory] = useState("All");
   const [pinnedMerchants, setPinnedMerchants] = useState<number[]>([]);
-  const [pinnedProducts, setPinnedProducts] = useState<number[]>([]);
+  const [pinnedProducts, setPinnedProducts] = useState<string[]>([]);
 
   const toggleMerchantPin = (id: number) => {
     setPinnedMerchants((prev) =>
@@ -90,7 +90,7 @@ const Index = () => {
     );
   };
 
-  const toggleProductPin = (id: number) => {
+  const toggleProductPin = (id: string) => {
     setPinnedProducts((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
     );
@@ -126,7 +126,7 @@ const Index = () => {
             onCategoryChange={setActiveCategory}
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="space-y-3">
             {MERCHANTS.map((merchant) => (
               <div key={merchant.id} onClick={() => navigate(`/merchant/${merchant.id}`)}>
                 <MerchantCard
@@ -170,7 +170,7 @@ const Index = () => {
             onCategoryChange={setActiveCategory}
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="space-y-3">
             {PRODUCTS.map((product) => (
               <ProductCard
                 key={product.id}
@@ -195,7 +195,7 @@ const Index = () => {
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-primary text-primary-foreground shadow-lg">
-        <div className="max-w-screen-xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-2xl font-bold">
             {activeTab === "merchants" ? "Featured Merchants" : "Featured Products"}
           </h1>
@@ -206,7 +206,7 @@ const Index = () => {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-screen-xl mx-auto px-4 py-6">
+      <main className="max-w-4xl mx-auto px-4 py-6">
         {renderContent()}
       </main>
 
