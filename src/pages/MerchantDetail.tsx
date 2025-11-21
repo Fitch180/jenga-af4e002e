@@ -100,7 +100,7 @@ const MerchantDetail = () => {
     <div className="min-h-screen bg-background pb-6">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-primary text-primary-foreground shadow-lg">
-        <div className="max-w-screen-xl mx-auto px-4 py-4 flex items-center gap-4">
+        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
           <button
             onClick={() => navigate("/")}
             className="w-10 h-10 rounded-full bg-primary-foreground/10 hover:bg-primary-foreground/20 flex items-center justify-center transition-colors"
@@ -111,115 +111,120 @@ const MerchantDetail = () => {
         </div>
       </header>
 
-      <main className="max-w-screen-xl mx-auto px-4 py-6 space-y-6">
-        {/* Merchant Info Card */}
-        <Card className="overflow-hidden">
-          <div className="bg-primary/5 p-6 flex flex-col md:flex-row gap-6">
-            <div className="w-32 h-32 flex-shrink-0 rounded-lg overflow-hidden bg-muted">
-              <img
-                src={merchant.image}
-                alt={merchant.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            
-            <div className="flex-1 space-y-4">
-              <div>
-                <h2 className="text-2xl font-bold text-foreground mb-2">{merchant.name}</h2>
-                <p className="text-muted-foreground">{merchant.description}</p>
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm">
-                  <MapPin className="w-4 h-4 text-accent" />
-                  <span className="text-foreground">{merchant.location}</span>
-                  <button
-                    onClick={openMap}
-                    className="text-accent hover:text-accent/80 text-sm font-medium ml-2"
-                  >
-                    View on Map
-                  </button>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Phone className="w-4 h-4 text-accent" />
-                  <a href={`tel:${merchant.phone}`} className="text-foreground hover:text-accent">
-                    {merchant.phone}
-                  </a>
-                </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <Mail className="w-4 h-4 text-accent" />
-                  <a href={`mailto:${merchant.email}`} className="text-foreground hover:text-accent">
-                    {merchant.email}
-                  </a>
-                </div>
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                      <MessageSquare className="w-4 h-4 mr-2" />
-                      Request Quotation
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Request Quotation from {merchant.name}</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4 pt-4">
-                      <Textarea
-                        placeholder="Describe what you need... (materials, quantities, specifications, etc.)"
-                        value={quotationRequest}
-                        onChange={(e) => setQuotationRequest(e.target.value)}
-                        rows={6}
-                        className="resize-none"
-                      />
-                      <div className="flex justify-end gap-3">
-                        <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                          Cancel
-                        </Button>
-                        <Button
-                          onClick={handleSendQuotation}
-                          className="bg-accent hover:bg-accent/90 text-accent-foreground"
-                        >
-                          Send Request
-                        </Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-
-                <Button variant="outline" onClick={() => navigate("/")}>
-                  Contact Merchant
-                </Button>
-              </div>
-            </div>
+      <main className="max-w-4xl mx-auto">
+        {/* LinkedIn-style Banner and Profile Photo */}
+        <div className="relative">
+          {/* Background Banner */}
+          <div className="h-48 bg-gradient-to-r from-primary to-primary/70 overflow-hidden">
+            <img 
+              src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&h=400&fit=crop" 
+              alt="Company banner" 
+              className="w-full h-full object-cover opacity-30"
+            />
           </div>
-        </Card>
+          
+          {/* Profile Photo */}
+          <div className="absolute left-6 -bottom-16 w-32 h-32 rounded-lg overflow-hidden border-4 border-background bg-card shadow-xl">
+            <img
+              src={merchant.image}
+              alt={merchant.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        </div>
 
-        {/* Products Catalog */}
-        <div>
-          <h3 className="text-xl font-semibold text-foreground mb-4">
-            Products from {merchant.name}
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {merchant.products.map((product) => (
-              <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
-                <div className="flex items-center p-4 gap-4">
-                  <div className="w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden bg-muted">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-foreground mb-1">{product.name}</h4>
-                    <p className="text-lg font-bold text-accent">{product.price}</p>
-                  </div>
+        {/* Merchant Info */}
+        <div className="px-4 pt-20 pb-6 space-y-6">
+          <div>
+            <h2 className="text-3xl font-bold text-foreground mb-2">{merchant.name}</h2>
+            <p className="text-muted-foreground leading-relaxed">{merchant.description}</p>
+          </div>
+              
+          <Card className="p-6">
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 text-foreground">
+                <MapPin className="w-5 h-5 text-accent" />
+                <span>{merchant.location}</span>
+                <button
+                  onClick={openMap}
+                  className="text-accent hover:text-accent/80 text-sm font-medium ml-2"
+                >
+                  View on Map
+                </button>
+              </div>
+              <div className="flex items-center gap-3 text-foreground">
+                <Phone className="w-5 h-5 text-accent" />
+                <a href={`tel:${merchant.phone}`} className="hover:text-accent transition-colors">
+                  {merchant.phone}
+                </a>
+              </div>
+              <div className="flex items-center gap-3 text-foreground">
+                <Mail className="w-5 h-5 text-accent" />
+                <a href={`mailto:${merchant.email}`} className="hover:text-accent transition-colors">
+                  {merchant.email}
+                </a>
+              </div>
+            </div>
+          </Card>
+
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Request Quotation
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Request Quotation from {merchant.name}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4 pt-4">
+                <Textarea
+                  placeholder="Describe what you need... (materials, quantities, specifications, etc.)"
+                  value={quotationRequest}
+                  onChange={(e) => setQuotationRequest(e.target.value)}
+                  rows={6}
+                  className="resize-none"
+                />
+                <div className="flex justify-end gap-3">
+                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleSendQuotation}
+                    className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                  >
+                    Send Request
+                  </Button>
                 </div>
-              </Card>
-            ))}
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Products Catalog */}
+          <div>
+            <h3 className="text-xl font-semibold text-foreground mb-4">
+              Products & Services
+            </h3>
+            <div className="space-y-3">
+              {merchant.products.map((product) => (
+                <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
+                  <div className="flex items-center p-4 gap-4">
+                    <div className="w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-muted">
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-lg text-foreground mb-1">{product.name}</h4>
+                      <p className="text-xl font-bold text-accent">{product.price}</p>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
           </div>
         </div>
       </main>
