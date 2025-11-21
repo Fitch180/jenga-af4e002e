@@ -22,8 +22,8 @@ export const MerchantCard = ({ name, location, image, isPinned, onPin }: Merchan
         <Pin className={`w-4 h-4 ${isPinned ? 'fill-accent text-accent' : 'text-background'}`} />
       </button>
       
-      <div className="flex flex-col items-center p-6 space-y-4">
-        <div className="w-32 h-32 rounded-full overflow-hidden bg-muted">
+      <div className="flex items-center p-4 gap-4">
+        <div className="w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-muted">
           <img
             src={image}
             alt={name}
@@ -31,9 +31,9 @@ export const MerchantCard = ({ name, location, image, isPinned, onPin }: Merchan
           />
         </div>
         
-        <div className="text-center space-y-2 w-full">
+        <div className="flex-1 space-y-2">
           <h3 className="font-semibold text-lg text-foreground">{name}</h3>
-          <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm">
+          <div className="flex items-center gap-2 text-muted-foreground text-sm">
             <MapPin className="w-4 h-4" />
             <span>{location}</span>
           </div>

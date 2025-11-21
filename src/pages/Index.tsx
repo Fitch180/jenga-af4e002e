@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
 import { MerchantCard } from "@/components/MerchantCard";
 import { ProductCard } from "@/components/ProductCard";
@@ -77,6 +78,7 @@ const PRODUCTS = [
 ];
 
 const Index = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("merchants");
   const [activeCategory, setActiveCategory] = useState("All");
   const [pinnedMerchants, setPinnedMerchants] = useState<number[]>([]);
@@ -126,12 +128,13 @@ const Index = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {MERCHANTS.map((merchant) => (
-              <MerchantCard
-                key={merchant.id}
-                {...merchant}
-                isPinned={pinnedMerchants.includes(merchant.id)}
-                onPin={() => toggleMerchantPin(merchant.id)}
-              />
+              <div key={merchant.id} onClick={() => navigate(`/merchant/${merchant.id}`)}>
+                <MerchantCard
+                  {...merchant}
+                  isPinned={pinnedMerchants.includes(merchant.id)}
+                  onPin={() => toggleMerchantPin(merchant.id)}
+                />
+              </div>
             ))}
           </div>
         </div>
