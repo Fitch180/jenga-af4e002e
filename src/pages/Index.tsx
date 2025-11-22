@@ -5,77 +5,9 @@ import { MerchantCard } from "@/components/MerchantCard";
 import { ProductCard } from "@/components/ProductCard";
 import { CategoryFilter } from "@/components/CategoryFilter";
 import { BottomNav } from "@/components/BottomNav";
-
-const CATEGORIES = [
-  "All",
-  "BUILDING",
-  "PLUMBING",
-  "FLOORING",
-  "ELECTRICAL",
-  "PAINTING",
-  "TILES",
-  "FURNITURE",
-  "LIGHTING",
-  "DECOR",
-];
-
-const MERCHANTS = [
-  {
-    id: 1,
-    name: "Dar Ceramica Center",
-    location: "Mikocheni",
-    image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=400&fit=crop",
-  },
-  {
-    id: 2,
-    name: "ABC Emporio Tiles Tanzania",
-    location: "Industrial Way Rd",
-    image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400&h=400&fit=crop",
-  },
-  {
-    id: 3,
-    name: "Elite Hardware Supplies",
-    location: "Msasani",
-    image: "https://images.unsplash.com/photo-1600573472591-ee6b68d14c68?w=400&h=400&fit=crop",
-  },
-  {
-    id: 4,
-    name: "Modern Living Furniture",
-    location: "Masaki",
-    image: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=400&h=400&fit=crop",
-  },
-];
-
-const PRODUCTS = [
-  {
-    id: "1",
-    name: "Light Lamp Shades",
-    merchant: "Dar Ceramica Center",
-    price: "25,000 Tsh",
-    image: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=400&h=400&fit=crop",
-  },
-  {
-    id: "2",
-    name: "Tiles Silex Dune 1.42",
-    merchant: "ABC Emporio",
-    price: "25,000 Tsh",
-    image: "https://images.unsplash.com/photo-1600607687644-c7171b42498f?w=400&h=400&fit=crop",
-  },
-  {
-    id: "3",
-    name: "Premium Wall Paint",
-    merchant: "Elite Hardware",
-    price: "45,000 Tsh",
-    image: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400&h=400&fit=crop",
-  },
-  {
-    id: "4",
-    name: "Modern Sofa Set",
-    merchant: "Modern Living",
-    price: "1,500,000 Tsh",
-    image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&h=400&fit=crop",
-  },
-];
+import Chat from "./Chat";
+import Profile from "./Profile";
+import { CATEGORIES, MERCHANTS, PRODUCTS } from "@/data/mockData";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -97,13 +29,21 @@ const Index = () => {
   };
 
   const renderContent = () => {
+    if (activeTab === "notifications") {
+      return <Chat />;
+    }
+
+    if (activeTab === "profile") {
+      return <Profile />;
+    }
+
     if (activeTab === "merchants") {
       return (
         <div className="space-y-6">
           <div>
             <h2 className="text-xl font-semibold text-foreground mb-4">Featured Merchants</h2>
             <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-              {MERCHANTS.slice(0, 3).map((merchant) => (
+              {MERCHANTS.slice(0, 5).map((merchant) => (
                 <div key={merchant.id} className="flex-shrink-0 w-24">
                   <div className="w-20 h-20 rounded-full overflow-hidden bg-muted mx-auto mb-2">
                     <img
@@ -147,7 +87,7 @@ const Index = () => {
           <div>
             <h2 className="text-xl font-semibold text-foreground mb-4">Featured Products</h2>
             <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-              {PRODUCTS.slice(0, 3).map((product) => (
+              {PRODUCTS.slice(0, 5).map((product) => (
                 <div key={product.id} className="flex-shrink-0 w-24">
                   <div className="w-20 h-20 rounded-full overflow-hidden bg-muted mx-auto mb-2">
                     <img
@@ -183,13 +123,17 @@ const Index = () => {
         </div>
       );
     }
+  };
 
+  // For chat and profile tabs, render them full-screen without header
+  if (activeTab === "notifications" || activeTab === "profile") {
     return (
-      <div className="flex items-center justify-center h-96">
-        <p className="text-muted-foreground">Coming soon...</p>
+      <div className="min-h-screen bg-background">
+        {renderContent()}
+        <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
     );
-  };
+  }
 
   return (
     <div className="min-h-screen bg-background pb-20">

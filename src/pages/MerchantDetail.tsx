@@ -70,6 +70,7 @@ const MerchantDetail = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const merchant = MERCHANTS.find(m => m.id === Number(id));
+  const merchantProducts = PRODUCTS.filter(p => p.merchantId === Number(id));
 
   if (!merchant) {
     return (
@@ -137,7 +138,9 @@ const MerchantDetail = () => {
         <div className="px-4 pt-20 pb-6 space-y-6">
           <div>
             <h2 className="text-3xl font-bold text-foreground mb-2">{merchant.name}</h2>
-            <p className="text-muted-foreground leading-relaxed">{merchant.description}</p>
+            <p className="text-muted-foreground leading-relaxed">
+              Leading supplier in {merchant.category.toLowerCase()}. Quality products and services for all your construction needs.
+            </p>
           </div>
               
           <Card className="p-6">
@@ -154,14 +157,14 @@ const MerchantDetail = () => {
               </div>
               <div className="flex items-center gap-3 text-foreground">
                 <Phone className="w-5 h-5 text-accent" />
-                <a href={`tel:${merchant.phone}`} className="hover:text-accent transition-colors">
-                  {merchant.phone}
+                <a href="tel:+255754123456" className="hover:text-accent transition-colors">
+                  +255 754 123 456
                 </a>
               </div>
               <div className="flex items-center gap-3 text-foreground">
                 <Mail className="w-5 h-5 text-accent" />
-                <a href={`mailto:${merchant.email}`} className="hover:text-accent transition-colors">
-                  {merchant.email}
+                <a href={`mailto:info@${merchant.name.toLowerCase().replace(/\s+/g, '')}.co.tz`} className="hover:text-accent transition-colors">
+                  info@{merchant.name.toLowerCase().replace(/\s+/g, '')}.co.tz
                 </a>
               </div>
             </div>
@@ -207,22 +210,13 @@ const MerchantDetail = () => {
               Products & Services
             </h3>
             <div className="space-y-3">
-              {merchant.products.map((product) => (
-                <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
-                  <div className="flex items-center p-4 gap-4">
-                    <div className="w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-muted">
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-lg text-foreground mb-1">{product.name}</h4>
-                      <p className="text-xl font-bold text-accent">{product.price}</p>
-                    </div>
-                  </div>
-                </Card>
+              {merchantProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  {...product}
+                  isPinned={false}
+                  onPin={() => {}}
+                />
               ))}
             </div>
           </div>

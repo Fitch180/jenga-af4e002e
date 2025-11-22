@@ -1,15 +1,10 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, ShoppingCart, Plus, Minus } from "lucide-react";
+import { ArrowLeft, ShoppingCart, Plus, Minus, Store } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-
-// Mock product data - in real app, fetch from API
-const mockProducts = [
-  { id: "1", name: "Premium Cement 50kg", price: "TZS 25,000", merchant: "BuildMart", merchantId: "1", category: "Building Materials", image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&h=300&fit=crop", description: "High-quality Portland cement suitable for all construction needs. Strong, durable, and meets international standards.", images: ["https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&h=600&fit=crop", "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800&h=600&fit=crop", "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&h=600&fit=crop"] },
-  { id: "2", name: "Steel Rods 12mm", price: "TZS 18,500", merchant: "IronWorks Co", merchantId: "2", category: "Building Materials", image: "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=400&h=300&fit=crop", description: "Premium grade steel reinforcement bars for concrete structures.", images: ["https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=800&h=600&fit=crop"] },
-];
+import { PRODUCTS, MERCHANTS } from "@/data/mockData";
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -18,7 +13,13 @@ export default function ProductDetail() {
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   
-  const product = mockProducts.find((p) => p.id === id);
+  const product = PRODUCTS.find((p) => p.id === id);
+  const merchant = product ? MERCHANTS.find((m) => m.id === product.merchantId) : null;
+  
+  const productImages = product ? [
+    product.image,
+    "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?w=800&h=600&fit=crop",
+  ] : [];
 
   if (!product) {
     return (
@@ -58,14 +59,14 @@ export default function ProductDetail() {
         <Card className="p-0 overflow-hidden">
           <div className="aspect-video bg-muted">
             <img 
-              src={product.images[selectedImage]} 
+              src={productImages[selectedImage]} 
               alt={product.name}
               className="w-full h-full object-cover"
             />
           </div>
-          {product.images.length > 1 && (
+          {productImages.length > 1 && (
             <div className="flex gap-2 p-4 overflow-x-auto">
-              {product.images.map((img, idx) => (
+              {productImages.map((img, idx) => (
                 <button
                   key={idx}
                   onClick={() => setSelectedImage(idx)}
@@ -90,19 +91,24 @@ export default function ProductDetail() {
           <div className="text-3xl font-bold text-accent">{product.price}</div>
 
           <div className="pt-4 border-t border-border">
-            <p className="text-foreground leading-relaxed">{product.description}</p>
+            <p className="text-foreground leading-relaxed">
+              Premium quality product with modern design. Perfect for residential and commercial projects.
+            </p>
           </div>
 
           {/* Merchant Link */}
-          <div className="pt-4 border-t border-border">
-            <p className="text-sm text-muted-foreground mb-2">Sold by</p>
-            <button
-              onClick={() => navigate(`/merchant/${product.merchantId}`)}
-              className="text-lg font-semibold text-accent hover:text-accent/80 transition-colors"
-            >
-              {product.merchant}
-            </button>
-          </div>
+          {merchant && (
+            <div className="pt-4 border-t border-border">
+              <p className="text-sm text-muted-foreground mb-2">Sold by</p>
+              <button
+                onClick={() => navigate(`/merchant/${merchant.id}`)}
+                className="flex items-center gap-2 text-lg font-semibold text-accent hover:text-accent/80 transition-colors"
+              >
+                <Store className="w-5 h-5" />
+                {merchant.name}
+              </button>
+            </div>
+          )}
 
           {/* Quantity Selector */}
           <div className="pt-4 border-t border-border">
