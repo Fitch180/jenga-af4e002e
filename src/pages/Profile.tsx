@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Settings, MapPin, Phone, Mail, Edit, Pin } from "lucide-react";
+import { Settings, MapPin, Phone, Mail, Edit, Pin, Store, Shield } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import { useNavigate } from "react-router-dom";
 import { MERCHANTS, PRODUCTS } from "@/data/mockData";
 import { MerchantCard } from "@/components/MerchantCard";
 import { ProductCard } from "@/components/ProductCard";
@@ -12,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const Profile = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [notes, setNotes] = useState(
     "Remember to check tile samples before final order.\nBudget: 5M Tsh for renovation.\nContractor needed by end of month."
   );
@@ -81,6 +83,35 @@ const Profile = () => {
                 </div>
               </div>
             </div>
+          </div>
+        </Card>
+
+        {/* Quick Access Section */}
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold text-foreground mb-4">Quick Access</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <Button
+              onClick={() => navigate("/merchant-dashboard")}
+              className="bg-accent hover:bg-accent/90 text-accent-foreground h-auto py-4 flex flex-col items-start"
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <Store className="w-5 h-5" />
+                <span className="font-semibold">Merchant Dashboard</span>
+              </div>
+              <span className="text-xs opacity-90">Manage your products and orders</span>
+            </Button>
+            
+            <Button
+              onClick={() => navigate("/admin-dashboard")}
+              variant="outline"
+              className="h-auto py-4 flex flex-col items-start border-accent text-accent hover:bg-accent/10"
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <Shield className="w-5 h-5" />
+                <span className="font-semibold">Admin Dashboard</span>
+              </div>
+              <span className="text-xs opacity-75">Manage platform and merchants</span>
+            </Button>
           </div>
         </Card>
 
