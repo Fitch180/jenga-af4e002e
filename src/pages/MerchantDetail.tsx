@@ -6,62 +6,9 @@ import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { MERCHANTS, PRODUCTS } from "@/data/mockData";
+import { ProductCard } from "@/components/ProductCard";
 
-const MERCHANTS = [
-  {
-    id: 1,
-    name: "Dar Ceramica Center",
-    location: "Mikocheni",
-    image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=400&fit=crop",
-    phone: "+255 123 456 789",
-    email: "info@darceramica.com",
-    description: "Premium ceramics and tiles supplier in Dar es Salaam. Offering high-quality materials for residential and commercial projects.",
-    products: [
-      { id: 1, name: "Ceramic Floor Tiles", price: "35,000 Tsh", image: "https://images.unsplash.com/photo-1600607687644-c7171b42498f?w=400&h=400&fit=crop" },
-      { id: 2, name: "Wall Tiles Premium", price: "28,000 Tsh", image: "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=400&h=400&fit=crop" },
-      { id: 3, name: "Bathroom Tiles Set", price: "45,000 Tsh", image: "https://images.unsplash.com/photo-1600607688969-a5bfcd646154?w=400&h=400&fit=crop" },
-    ]
-  },
-  {
-    id: 2,
-    name: "ABC Emporio Tiles Tanzania",
-    location: "Industrial Way Rd",
-    image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400&h=400&fit=crop",
-    phone: "+255 234 567 890",
-    email: "contact@abcemporio.co.tz",
-    description: "Leading tiles distributor with a wide selection of local and imported tiles for all your construction needs.",
-    products: [
-      { id: 4, name: "Tiles Silex Dune 1.42", price: "25,000 Tsh", image: "https://images.unsplash.com/photo-1600607687644-c7171b42498f?w=400&h=400&fit=crop" },
-      { id: 5, name: "Porcelain Tiles", price: "38,000 Tsh", image: "https://images.unsplash.com/photo-1600607688960-e095ff83135c?w=400&h=400&fit=crop" },
-    ]
-  },
-  {
-    id: 3,
-    name: "Elite Hardware Supplies",
-    location: "Msasani",
-    image: "https://images.unsplash.com/photo-1600573472591-ee6b68d14c68?w=400&h=400&fit=crop",
-    phone: "+255 345 678 901",
-    email: "sales@elitehardware.com",
-    description: "Complete hardware solutions for construction and renovation projects. Quality products at competitive prices.",
-    products: [
-      { id: 6, name: "Premium Wall Paint", price: "45,000 Tsh", image: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400&h=400&fit=crop" },
-      { id: 7, name: "Power Tools Set", price: "125,000 Tsh", image: "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=400&h=400&fit=crop" },
-    ]
-  },
-  {
-    id: 4,
-    name: "Modern Living Furniture",
-    location: "Masaki",
-    image: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=400&h=400&fit=crop",
-    phone: "+255 456 789 012",
-    email: "info@modernliving.co.tz",
-    description: "Contemporary furniture designs for modern homes and offices. Custom orders available.",
-    products: [
-      { id: 8, name: "Modern Sofa Set", price: "1,500,000 Tsh", image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&h=400&fit=crop" },
-      { id: 9, name: "Dining Table Set", price: "850,000 Tsh", image: "https://images.unsplash.com/photo-1617806118233-18e1de247200?w=400&h=400&fit=crop" },
-    ]
-  },
-];
 
 const MerchantDetail = () => {
   const { id } = useParams();
@@ -71,6 +18,26 @@ const MerchantDetail = () => {
 
   const merchant = MERCHANTS.find(m => m.id === Number(id));
   const merchantProducts = PRODUCTS.filter(p => p.merchantId === Number(id));
+  
+  const getMerchantDescription = (category: string) => {
+    const descriptions: Record<string, string> = {
+      TILES: "Premium tiles supplier offering high-quality ceramic, porcelain, and designer tiles for residential and commercial projects.",
+      BUILDING: "Complete building materials and construction supplies. Quality products at competitive prices.",
+      FURNITURE: "Contemporary furniture designs for modern homes and offices. Custom orders available.",
+      LIGHTING: "Professional lighting solutions for residential and commercial spaces. Wide range of modern and classic designs.",
+      PAINTING: "Professional painting supplies and services. High-quality paints and tools for all your painting needs.",
+      PLUMBING: "Complete plumbing solutions and supplies. Quality fixtures and materials for all plumbing projects.",
+      FLOORING: "Premium flooring solutions including hardwood, laminate, vinyl, and specialty flooring options.",
+      ELECTRICAL: "Professional electrical supplies and solutions. Complete range of electrical materials and equipment.",
+      GARDENING: "Complete garden supplies and landscaping services. Tools, plants, and outdoor solutions.",
+      REPAIR: "Professional repair services and tools. Complete toolkit solutions for all maintenance needs.",
+      DECOR: "Beautiful home decor and interior design elements. Transform your space with our curated collection.",
+      CONTRACTORS: "Professional construction and contracting services. Reliable and quality workmanship.",
+      ARCHITECTS: "Professional architectural design and planning services. Innovative designs for modern living.",
+      ENGINEERS: "Structural and civil engineering services. Expert solutions for construction projects.",
+    };
+    return descriptions[category] || "Quality products and services for all your housing needs.";
+  };
 
   if (!merchant) {
     return (
@@ -139,7 +106,7 @@ const MerchantDetail = () => {
           <div>
             <h2 className="text-3xl font-bold text-foreground mb-2">{merchant.name}</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Leading supplier in {merchant.category.toLowerCase()}. Quality products and services for all your construction needs.
+              {getMerchantDescription(merchant.category)}
             </p>
           </div>
               
