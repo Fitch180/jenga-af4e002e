@@ -3,13 +3,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, ShoppingCart, Plus, Minus, Store } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
 import { PRODUCTS, MERCHANTS } from "@/data/mockData";
+import { useCart } from "@/contexts/CartContext";
 
 export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { addToCart } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   
@@ -32,11 +32,18 @@ export default function ProductDetail() {
     );
   }
 
-  const handleCheckout = () => {
-    toast({
-      title: "Added to Cart",
-      description: `${quantity} x ${product.name} added to your cart.`,
-    });
+  const handleAddToCart = () => {
+    for (let i = 0; i < quantity; i++) {
+      addToCart({
+        id: `${product.id}-${Date.now()}-${i}`,
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.image,
+        merchant: product.merchant,
+      });
+    }
+    setQuantity(1);
   };
 
   const incrementQuantity = () => setQuantity(q => q + 1);
@@ -136,9 +143,9 @@ export default function ProductDetail() {
             </div>
           </div>
 
-          {/* Checkout Button */}
+          {/* Add to Cart Button */}
           <Button
-            onClick={handleCheckout}
+            onClick={handleAddToCart}
             className="w-full bg-accent hover:bg-accent/90 text-accent-foreground h-12 text-lg"
           >
             <ShoppingCart className="w-5 h-5 mr-2" />

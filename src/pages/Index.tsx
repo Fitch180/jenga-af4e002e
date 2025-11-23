@@ -16,6 +16,14 @@ const Index = () => {
   const [pinnedMerchants, setPinnedMerchants] = useState<number[]>([]);
   const [pinnedProducts, setPinnedProducts] = useState<string[]>([]);
 
+  const handleTabChange = (tab: string) => {
+    if (tab === "cart") {
+      navigate("/cart");
+    } else {
+      setActiveTab(tab);
+    }
+  };
+
   const toggleMerchantPin = (id: number) => {
     setPinnedMerchants((prev) =>
       prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
@@ -130,7 +138,7 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-background">
         {renderContent()}
-        <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+        <BottomNav activeTab={activeTab} onTabChange={handleTabChange} />
       </div>
     );
   }
