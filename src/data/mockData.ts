@@ -31,7 +31,7 @@ export const MERCHANTS = [
   { id: 12, name: "Decor Dreams", location: "Mikocheni", category: "DECOR", image: "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=400&h=400&fit=crop" },
   { id: 13, name: "BuildPro Contractors", location: "Kimara", category: "CONTRACTORS", image: "https://images.unsplash.com/photo-1600585154363-67eb9e2e2099?w=400&h=400&fit=crop" },
   { id: 14, name: "ArchDesign Studio", location: "Masaki", category: "ARCHITECTS", image: "https://images.unsplash.com/photo-1600585152915-d208bec867a1?w=400&h=400&fit=crop" },
-  { id: 15, name: "Structural Engineers Ltd", location: "City Center", category: "ENGINEERS", image: "https://images.unsplash.com/photo-1600607687644-aac4c3eac7f4?w=400&h=400&fit=crop" },
+  { id: 15, name: "Structural Engineers Ltd", location: "City Center", category: "ENGINEERS", image: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&h=400&fit=crop" },
   { id: 16, name: "Luxury Furnishings", location: "Oysterbay", category: "FURNITURE", image: "https://images.unsplash.com/photo-1600573472550-8090b5e0745e?w=400&h=400&fit=crop" },
   { id: 17, name: "Tile World Tanzania", location: "Mwenge", category: "TILES", image: "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?w=400&h=400&fit=crop" },
   { id: 18, name: "Elegant Lighting Design", location: "Masaki", category: "LIGHTING", image: "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=400&h=400&fit=crop" },
@@ -54,7 +54,7 @@ export const PRODUCTS = [
   { id: "9", merchantId: 2, name: "Marble Effect Tiles", merchant: "ABC Emporio", price: "75,000 Tsh", category: "TILES", image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=400&fit=crop" },
   { id: "10", merchantId: 2, name: "Wood Look Tiles", merchant: "ABC Emporio", price: "55,000 Tsh", category: "TILES", image: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=400&h=400&fit=crop" },
   { id: "11", merchantId: 2, name: "Designer Wall Tiles", merchant: "ABC Emporio", price: "65,000 Tsh", category: "TILES", image: "https://images.unsplash.com/photo-1600607686527-6fb886090705?w=400&h=400&fit=crop" },
-  { id: "12", merchantId: 2, name: "Luxury Floor Tiles", merchant: "ABC Emporio", price: "80,000 Tsh", category: "TILES", image: "https://images.unsplash.com/photo-1600607686532-37e545c1e101?w=400&h=400&fit=crop" },
+  { id: "12", merchantId: 2, name: "Luxury Floor Tiles", merchant: "ABC Emporio", price: "80,000 Tsh", category: "TILES", image: "https://images.unsplash.com/photo-1615873968403-89e068629265?w=400&h=400&fit=crop" },
   
   // Elite Hardware products (id: 3)
   { id: "13", merchantId: 3, name: "Premium Wall Paint", merchant: "Elite Hardware", price: "45,000 Tsh", category: "PAINTING", image: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?w=400&h=400&fit=crop" },
@@ -62,7 +62,7 @@ export const PRODUCTS = [
   { id: "15", merchantId: 3, name: "Steel Rods", merchant: "Elite Hardware", price: "12,000 Tsh", category: "BUILDING", image: "https://images.unsplash.com/photo-1600573472591-ee6b68d14c68?w=400&h=400&fit=crop" },
   { id: "16", merchantId: 3, name: "Power Tools Set", merchant: "Elite Hardware", price: "250,000 Tsh", category: "BUILDING", image: "https://images.unsplash.com/photo-1600585152915-d208bec867a1?w=400&h=400&fit=crop" },
   { id: "17", merchantId: 3, name: "Safety Equipment", merchant: "Elite Hardware", price: "85,000 Tsh", category: "BUILDING", image: "https://images.unsplash.com/photo-1600585154363-67eb9e2e2099?w=400&h=400&fit=crop" },
-  { id: "18", merchantId: 3, name: "Building Materials Bundle", merchant: "Elite Hardware", price: "150,000 Tsh", category: "BUILDING", image: "https://images.unsplash.com/photo-1600607687644-aac4c3eac7f4?w=400&h=400&fit=crop" },
+  { id: "18", merchantId: 3, name: "Building Materials Bundle", merchant: "Elite Hardware", price: "150,000 Tsh", category: "BUILDING", image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=400&h=400&fit=crop" },
   
   // Modern Living Furniture products (id: 4)
   { id: "19", merchantId: 4, name: "Modern Sofa Set", merchant: "Modern Living", price: "1,500,000 Tsh", category: "FURNITURE", image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&h=400&fit=crop" },
@@ -89,20 +89,20 @@ export const PRODUCTS = [
   { id: "36", merchantId: 6, name: "Wood Stain", merchant: "Perfect Paint", price: "45,000 Tsh", category: "PAINTING", image: "https://images.unsplash.com/photo-1562259949-e8e7689d7828?w=400&h=400&fit=crop" },
   
   // Premier Plumbing products (id: 7)
-  { id: "37", merchantId: 7, name: "PVC Pipes Set", merchant: "Premier Plumbing", price: "35,000 Tsh", category: "PLUMBING", image: "https://images.unsplash.com/photo-1607400201515-c2c41c07dc1c?w=400&h=400&fit=crop" },
+  { id: "37", merchantId: 7, name: "PVC Pipes Set", merchant: "Premier Plumbing", price: "35,000 Tsh", category: "PLUMBING", image: "https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?w=400&h=400&fit=crop" },
   { id: "38", merchantId: 7, name: "Kitchen Sink Stainless", merchant: "Premier Plumbing", price: "95,000 Tsh", category: "PLUMBING", image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=400&h=400&fit=crop" },
   { id: "39", merchantId: 7, name: "Bathroom Faucets", merchant: "Premier Plumbing", price: "65,000 Tsh", category: "PLUMBING", image: "https://images.unsplash.com/photo-1620626011761-996317b8d101?w=400&h=400&fit=crop" },
-  { id: "40", merchantId: 7, name: "Water Heater", merchant: "Premier Plumbing", price: "450,000 Tsh", category: "PLUMBING", image: "https://images.unsplash.com/photo-1607400201515-c2c41c07dc1c?w=400&h=400&fit=crop" },
+  { id: "40", merchantId: 7, name: "Water Heater", merchant: "Premier Plumbing", price: "450,000 Tsh", category: "PLUMBING", image: "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?w=400&h=400&fit=crop" },
   { id: "41", merchantId: 7, name: "Shower Head Set", merchant: "Premier Plumbing", price: "55,000 Tsh", category: "PLUMBING", image: "https://images.unsplash.com/photo-1620626011761-996317b8d101?w=400&h=400&fit=crop" },
   { id: "42", merchantId: 7, name: "Toilet Complete Set", merchant: "Premier Plumbing", price: "280,000 Tsh", category: "PLUMBING", image: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=400&h=400&fit=crop" },
   
   // FloorMaster products (id: 8)
   { id: "43", merchantId: 8, name: "Hardwood Flooring", merchant: "FloorMaster", price: "350,000 Tsh", category: "FLOORING", image: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=400&h=400&fit=crop" },
   { id: "44", merchantId: 8, name: "Laminate Flooring", merchant: "FloorMaster", price: "180,000 Tsh", category: "FLOORING", image: "https://images.unsplash.com/photo-1616486029423-aaa4789e8c9a?w=400&h=400&fit=crop" },
-  { id: "45", merchantId: 8, name: "Vinyl Flooring", merchant: "FloorMaster", price: "120,000 Tsh", category: "FLOORING", image: "https://images.unsplash.com/photo-1616137422495-b57a7ff3f47d?w=400&h=400&fit=crop" },
+  { id: "45", merchantId: 8, name: "Vinyl Flooring", merchant: "FloorMaster", price: "120,000 Tsh", category: "FLOORING", image: "https://images.unsplash.com/photo-1631679706909-1844bbd07221?w=400&h=400&fit=crop" },
   { id: "46", merchantId: 8, name: "Carpet Tiles", merchant: "FloorMaster", price: "95,000 Tsh", category: "FLOORING", image: "https://images.unsplash.com/photo-1616486029423-aaa4789e8c9a?w=400&h=400&fit=crop" },
   { id: "47", merchantId: 8, name: "Bamboo Flooring", merchant: "FloorMaster", price: "280,000 Tsh", category: "FLOORING", image: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=400&h=400&fit=crop" },
-  { id: "48", merchantId: 8, name: "Cork Flooring", merchant: "FloorMaster", price: "220,000 Tsh", category: "FLOORING", image: "https://images.unsplash.com/photo-1616137422495-b57a7ff3f47d?w=400&h=400&fit=crop" },
+  { id: "48", merchantId: 8, name: "Cork Flooring", merchant: "FloorMaster", price: "220,000 Tsh", category: "FLOORING", image: "https://images.unsplash.com/photo-1615875605825-5eb9bb5d52ac?w=400&h=400&fit=crop" },
   
   // Power Electric products (id: 9)
   { id: "49", merchantId: 9, name: "Circuit Breaker Box", merchant: "Power Electric", price: "125,000 Tsh", category: "ELECTRICAL", image: "https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=400&h=400&fit=crop" },
@@ -132,9 +132,9 @@ export const PRODUCTS = [
   { id: "67", merchantId: 12, name: "Wall Art Canvas", merchant: "Decor Dreams", price: "95,000 Tsh", category: "DECOR", image: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=400&h=400&fit=crop" },
   { id: "68", merchantId: 12, name: "Decorative Mirrors", merchant: "Decor Dreams", price: "120,000 Tsh", category: "DECOR", image: "https://images.unsplash.com/photo-1618220179428-22790b461013?w=400&h=400&fit=crop" },
   { id: "69", merchantId: 12, name: "Curtains and Drapes", merchant: "Decor Dreams", price: "85,000 Tsh", category: "DECOR", image: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=400&h=400&fit=crop" },
-  { id: "70", merchantId: 12, name: "Throw Pillows Set", merchant: "Decor Dreams", price: "45,000 Tsh", category: "DECOR", image: "https://images.unsplash.com/photo-1604762524889-8df2f5b7ef44?w=400&h=400&fit=crop" },
+  { id: "70", merchantId: 12, name: "Throw Pillows Set", merchant: "Decor Dreams", price: "45,000 Tsh", category: "DECOR", image: "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?w=400&h=400&fit=crop" },
   { id: "71", merchantId: 12, name: "Vases and Planters", merchant: "Decor Dreams", price: "35,000 Tsh", category: "DECOR", image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=400&h=400&fit=crop" },
-  { id: "72", merchantId: 12, name: "Area Rugs", merchant: "Decor Dreams", price: "180,000 Tsh", category: "DECOR", image: "https://images.unsplash.com/photo-1604762524889-8df2f5b7ef44?w=400&h=400&fit=crop" },
+  { id: "72", merchantId: 12, name: "Area Rugs", merchant: "Decor Dreams", price: "180,000 Tsh", category: "DECOR", image: "https://images.unsplash.com/photo-1600428877303-da4aa8c304eb?w=400&h=400&fit=crop" },
   
   // BuildPro Contractors products (id: 13)
   { id: "73", merchantId: 13, name: "Construction Materials", merchant: "BuildPro", price: "500,000 Tsh", category: "BUILDING", image: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&h=400&fit=crop" },
