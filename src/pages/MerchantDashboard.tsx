@@ -1,11 +1,17 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Package, ShoppingCart, TrendingUp, Plus, Edit, Trash2 } from "lucide-react";
+import { ArrowLeft, Package, ShoppingCart, TrendingUp, Plus, Edit, Trash2, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { PRODUCTS } from "@/data/mockData";
+
+const mockQuotations = [
+  { id: "QT-001", customer: "John Doe", items: "Ceramic Tiles x 50sqm", status: "pending", date: "2024-01-15" },
+  { id: "QT-002", customer: "Jane Smith", items: "Wall Paint x 20L", status: "responded", date: "2024-01-14" },
+  { id: "QT-003", customer: "Mike Johnson", items: "Floor Tiles x 30sqm", status: "accepted", date: "2024-01-13" },
+];
 
 const MerchantDashboard = () => {
   const navigate = useNavigate();
@@ -91,6 +97,7 @@ const MerchantDashboard = () => {
         <Tabs defaultValue="products" className="w-full">
           <TabsList className="w-full justify-start">
             <TabsTrigger value="products">Products</TabsTrigger>
+            <TabsTrigger value="quotations">Quotations</TabsTrigger>
             <TabsTrigger value="orders">Orders</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
@@ -129,6 +136,46 @@ const MerchantDashboard = () => {
                           </Button>
                         </div>
                       </div>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="quotations" className="space-y-4 mt-6">
+            <h2 className="text-xl font-bold text-foreground">Quotation Requests</h2>
+            <div className="space-y-3">
+              {mockQuotations.map((quotation) => (
+                <Card key={quotation.id} className="p-4">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-start gap-3">
+                      <FileText className="w-5 h-5 text-accent mt-1" />
+                      <div>
+                        <p className="font-semibold text-foreground">{quotation.id}</p>
+                        <p className="text-sm text-muted-foreground">{quotation.customer}</p>
+                        <p className="text-sm text-foreground mt-1">{quotation.items}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-muted-foreground">{quotation.date}</p>
+                      <Badge
+                        variant={
+                          quotation.status === "accepted"
+                            ? "default"
+                            : quotation.status === "responded"
+                            ? "secondary"
+                            : "outline"
+                        }
+                        className="mt-1"
+                      >
+                        {quotation.status}
+                      </Badge>
+                      {quotation.status === "pending" && (
+                        <Button size="sm" className="mt-2 bg-accent hover:bg-accent/90 text-accent-foreground">
+                          Respond
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </Card>

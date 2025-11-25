@@ -137,13 +137,21 @@ const MerchantDetail = () => {
             </div>
           </Card>
 
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
-                <MessageSquare className="w-4 h-4 mr-2" />
-                Request Quotation
-              </Button>
-            </DialogTrigger>
+          <div className="flex gap-3">
+            <Button 
+              variant="outline" 
+              className="flex-1"
+              onClick={() => navigate("/chat")}
+            >
+              <MessageSquare className="w-4 h-4 mr-2" />
+              Message
+            </Button>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground">
+                  Request Quotation
+                </Button>
+              </DialogTrigger>
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Request Quotation from {merchant.name}</DialogTitle>
@@ -170,6 +178,7 @@ const MerchantDetail = () => {
               </div>
             </DialogContent>
           </Dialog>
+          </div>
 
           {/* Products Catalog */}
           <div>
