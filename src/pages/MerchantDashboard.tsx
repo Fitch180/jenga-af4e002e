@@ -1,11 +1,34 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Package, ShoppingCart, TrendingUp, Plus, Edit, Trash2, FileText } from "lucide-react";
+import { ArrowLeft, Package, ShoppingCart, TrendingUp, Plus, Edit, Trash2, FileText, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { PRODUCTS } from "@/data/mockData";
+import { toast } from "sonner";
+import ProductFormDialog from "@/components/merchant/ProductFormDialog";
+import DeleteConfirmDialog from "@/components/merchant/DeleteConfirmDialog";
+import BulkUploadDialog from "@/components/merchant/BulkUploadDialog";
+
+interface ProductVariant {
+  id: string;
+  name: string;
+  value: string;
+  priceModifier: string;
+}
+
+interface Product {
+  id: string;
+  merchantId: number;
+  name: string;
+  merchant: string;
+  price: string;
+  category: string;
+  image: string;
+  description?: string;
+  variants?: ProductVariant[];
+}
 
 const mockQuotations = [
   { id: "QT-001", customer: "John Doe", items: "Ceramic Tiles x 50sqm", status: "pending", date: "2024-01-15" },
@@ -16,10 +39,24 @@ const mockQuotations = [
 const MerchantDashboard = () => {
   const navigate = useNavigate();
   const merchantId = 1; // Mock merchant ID - will be from auth in production
-  const merchantProducts = PRODUCTS.filter(p => p.merchantId === merchantId);
+  const merchantName = "Dar Ceramica Center";
+
+  const [products, setProducts] = useState<Product[]>(
+    PRODUCTS.filter((p) => p.merchantId === merchantId).map((p) => ({
+      ...p,
+      description: "",
+      variants: [],
+    }))
+  );
+
+  const [productFormOpen, setProductFormOpen] = useState(false);
+  const [bulkUploadOpen, setBulkUploadOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
 
   const [stats] = useState({
-    totalProducts: merchantProducts.length,
+    totalProducts: products.length,
     totalOrders: 24,
     revenue: "2,450,000",
     pendingOrders: 5,
@@ -30,6 +67,75 @@ const MerchantDashboard = () => {
     { id: "ORD-002", customer: "Jane Smith", items: 1, total: "35,000 Tsh", status: "completed" },
     { id: "ORD-003", customer: "Mike Johnson", items: 5, total: "280,000 Tsh", status: "processing" },
   ]);
+
+  const handleAddProduct = () => {
+    setEditingProduct(null);
+    setProductFormOpen(true);
+  };
+
+  const handleEditProduct = (product: Product) => {
+    setEditingProduct(product);
+    setProductFormOpen(true);
+  };
+
+  const handleDeleteClick = (productId: string) => {
+    setDeletingProductId(productId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (deletingProductId) {
+      setProducts(products.filter((p) => p.id !== deletingProductId));
+      toast.success("Product deleted successfully");
+      setDeleteDialogOpen(false);
+      setDeletingProductId(null);
+    }
+  };
+
+  const handleSaveProduct = (productData: Omit<Product, "id" | "merchantId" | "merchant"> & { id?: string }) => {
+    if (productData.id) {
+      // Update existing product
+      setProducts(
+        products.map((p) =>
+          p.id === productData.id
+            ? { ...p, ...productData, merchantId, merchant: merchantName }
+            : p
+        )
+      );
+      toast.success("Product updated successfully");
+    } else {
+      // Add new product
+      const newProduct: Product = {
+        id: Date.now().toString(),
+        merchantId,
+        merchant: merchantName,
+        name: productData.name,
+        price: productData.price,
+        category: productData.category,
+        image: productData.image,
+        description: productData.description,
+        variants: productData.variants,
+      };
+      setProducts([...products, newProduct]);
+      toast.success("Product added successfully");
+    }
+  };
+
+  const handleBulkUpload = (uploadedProducts: any[]) => {
+    const newProducts = uploadedProducts.map((p, index) => ({
+      id: `bulk-${Date.now()}-${index}`,
+      merchantId,
+      merchant: merchantName,
+      name: p.name,
+      price: p.price,
+      category: p.category,
+      image: p.image,
+      description: p.description || "",
+      variants: [],
+    }));
+    setProducts([...products, ...newProducts]);
+    toast.success(`${newProducts.length} products uploaded successfully`);
+  };
 
   return (
     <div className="min-h-screen bg-background pb-6">
@@ -54,7 +160,7 @@ const MerchantDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total Products</p>
-                <p className="text-2xl font-bold text-foreground">{stats.totalProducts}</p>
+                <p className="text-2xl font-bold text-foreground">{products.length}</p>
               </div>
               <Package className="w-8 h-8 text-accent" />
             </div>
@@ -103,43 +209,80 @@ const MerchantDashboard = () => {
           </TabsList>
 
           <TabsContent value="products" className="space-y-4 mt-6">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center flex-wrap gap-2">
               <h2 className="text-xl font-bold text-foreground">Product Catalog</h2>
-              <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Product
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setBulkUploadOpen(true)}>
+                  <Upload className="w-4 h-4 mr-2" />
+                  Bulk Upload
+                </Button>
+                <Button
+                  onClick={handleAddProduct}
+                  className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Product
+                </Button>
+              </div>
             </div>
 
             <div className="space-y-3">
-              {merchantProducts.map((product) => (
-                <Card key={product.id} className="p-4">
-                  <div className="flex gap-4">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-24 h-24 object-cover rounded-lg"
-                    />
-                    <div className="flex-1">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-semibold text-foreground">{product.name}</h3>
-                          <p className="text-sm text-muted-foreground">{product.category}</p>
-                          <p className="font-bold text-accent mt-1">{product.price}</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button size="sm" variant="outline" className="text-destructive">
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+              {products.length === 0 ? (
+                <Card className="p-8 text-center">
+                  <Package className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+                  <p className="text-muted-foreground">No products yet. Add your first product!</p>
+                </Card>
+              ) : (
+                products.map((product) => (
+                  <Card key={product.id} className="p-4">
+                    <div className="flex gap-4">
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-24 h-24 object-cover rounded-lg"
+                        onError={(e) => {
+                          e.currentTarget.src = "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=400&fit=crop";
+                        }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-start gap-2">
+                          <div className="min-w-0">
+                            <h3 className="font-semibold text-foreground truncate">{product.name}</h3>
+                            <p className="text-sm text-muted-foreground">{product.category}</p>
+                            <p className="font-bold text-accent mt-1">{product.price}</p>
+                            {product.variants && product.variants.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                {product.variants.map((v) => (
+                                  <Badge key={v.id} variant="outline" className="text-xs">
+                                    {v.name}: {v.value}
+                                  </Badge>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex gap-2 shrink-0">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEditProduct(product)}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => handleDeleteClick(product.id)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </Card>
-              ))}
+                  </Card>
+                ))
+              )}
             </div>
           </TabsContent>
 
@@ -235,6 +378,28 @@ const MerchantDashboard = () => {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Dialogs */}
+      <ProductFormDialog
+        open={productFormOpen}
+        onOpenChange={setProductFormOpen}
+        product={editingProduct}
+        onSave={handleSaveProduct}
+      />
+
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Delete Product"
+        description="Are you sure you want to delete this product? This action cannot be undone."
+        onConfirm={handleDeleteConfirm}
+      />
+
+      <BulkUploadDialog
+        open={bulkUploadOpen}
+        onOpenChange={setBulkUploadOpen}
+        onUpload={handleBulkUpload}
+      />
     </div>
   );
 };
