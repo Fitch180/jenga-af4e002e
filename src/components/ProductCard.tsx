@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { Pin, ShoppingCart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useCart } from "@/contexts/CartContext";
 
 interface ProductCardProps {
@@ -17,6 +19,17 @@ interface ProductCardProps {
 export const ProductCard = ({ id, name, price, merchant, image, isPinned, onPin }: ProductCardProps) => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const [imageLoading, setImageLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
+
+  const handleImageLoad = () => {
+    setImageLoading(false);
+  };
+
+  const handleImageError = () => {
+    setImageLoading(false);
+    setImageError(true);
+  };
   
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -56,11 +69,22 @@ export const ProductCard = ({ id, name, price, merchant, image, isPinned, onPin 
       
       <div className="flex items-center p-4 gap-4">
         <div className="w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-muted">
-          <img
-            src={image}
-            alt={name}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-          />
+          {imageLoading && (
+            <Skeleton className="w-full h-full" />
+          )}
+          {imageError ? (
+            <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground">
+              <span className="text-2xl font-bold">{name.charAt(0)}</span>
+            </div>
+          ) : (
+            <img
+              src={image}
+              alt={name}
+              className={`w-full h-full object-cover group-hover:scale-110 transition-transform duration-300 ${imageLoading ? 'hidden' : 'block'}`}
+              onLoad={handleImageLoad}
+              onError={handleImageError}
+            />
+          )}
         </div>
         
         <div className="flex-1 space-y-1">
