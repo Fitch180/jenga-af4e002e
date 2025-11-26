@@ -4,16 +4,20 @@ import { ArrowLeft, MapPin, Phone, Mail, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { toast } from "sonner";
 import { MERCHANTS, PRODUCTS } from "@/data/mockData";
 import { ProductCard } from "@/components/ProductCard";
+import { useQuotations } from "@/contexts/QuotationContext";
 
 
 const MerchantDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { addQuotation } = useQuotations();
   const [quotationRequest, setQuotationRequest] = useState("");
+  const [quotationItems, setQuotationItems] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const merchant = MERCHANTS.find(m => m.id === Number(id));
@@ -52,11 +56,29 @@ const MerchantDetail = () => {
 
   const handleSendQuotation = () => {
     if (!quotationRequest.trim()) {
-      toast.error("Please enter your quotation request");
       return;
     }
-    toast.success("Quotation request sent successfully!");
+    
+    // Parse items from the items field
+    const items = quotationItems.split('\n').filter(line => line.trim()).map(line => {
+      const parts = line.split('-').map(p => p.trim());
+      return {
+        productName: parts[0] || line,
+        quantity: parseInt(parts[1]) || 1,
+        specifications: parts[2] || undefined
+      };
+    });
+
+    addQuotation({
+      merchantId: Number(id),
+      merchantName: merchant.name,
+      userId: "user-1",
+      items: items.length > 0 ? items : [{ productName: "General inquiry", quantity: 1 }],
+      message: quotationRequest
+    });
+    
     setQuotationRequest("");
+    setQuotationItems("");
     setIsDialogOpen(false);
   };
 
@@ -157,13 +179,28 @@ const MerchantDetail = () => {
                 <DialogTitle>Request Quotation from {merchant.name}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-4">
-                <Textarea
-                  placeholder="Describe what you need... (materials, quantities, specifications, etc.)"
-                  value={quotationRequest}
-                  onChange={(e) => setQuotationRequest(e.target.value)}
-                  rows={6}
-                  className="resize-none"
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="items">Items (one per line: Product - Quantity - Specs)</Label>
+                  <Textarea
+                    id="items"
+                    placeholder="e.g., Ceramic Floor Tiles - 100 - 60x60cm White&#10;Wall Tiles Premium - 50 - 30x60cm Grey"
+                    value={quotationItems}
+                    onChange={(e) => setQuotationItems(e.target.value)}
+                    rows={4}
+                    className="resize-none"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="message">Additional Details</Label>
+                  <Textarea
+                    id="message"
+                    placeholder="Describe your project, timeline, delivery requirements, etc."
+                    value={quotationRequest}
+                    onChange={(e) => setQuotationRequest(e.target.value)}
+                    rows={4}
+                    className="resize-none"
+                  />
+                </div>
                 <div className="flex justify-end gap-3">
                   <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                     Cancel
@@ -171,6 +208,7 @@ const MerchantDetail = () => {
                   <Button
                     onClick={handleSendQuotation}
                     className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                    disabled={!quotationRequest.trim()}
                   >
                     Send Request
                   </Button>

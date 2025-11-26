@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { toast } from "sonner";
 
 export type OrderStatus = "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled";
 
@@ -82,11 +83,25 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const updateOrderStatus = (id: string, status: OrderStatus) => {
-    setOrders(prev => prev.map(order => 
-      order.id === id 
-        ? { ...order, status, updatedAt: new Date() }
-        : order
-    ));
+    setOrders(prev => prev.map(order => {
+      if (order.id === id) {
+        // Show notification for status changes
+        const statusMessages: Record<OrderStatus, string> = {
+          pending: "Order is pending",
+          confirmed: "Your order has been confirmed!",
+          processing: "Your order is being processed",
+          shipped: "Your order has been shipped!",
+          delivered: "Your order has been delivered!",
+          cancelled: "Your order has been cancelled"
+        };
+        toast.success(statusMessages[status], {
+          description: `Order ${id.slice(0, 15)}...`
+        });
+        
+        return { ...order, status, updatedAt: new Date() };
+      }
+      return order;
+    }));
   };
 
   return (

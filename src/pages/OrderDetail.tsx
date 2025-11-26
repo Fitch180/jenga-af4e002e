@@ -1,10 +1,11 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Package, MapPin, CreditCard, Clock, CheckCircle, Truck, XCircle } from "lucide-react";
+import { ArrowLeft, MapPin, CreditCard, Clock, CheckCircle, Package, Truck, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useOrders, OrderStatus } from "@/contexts/OrderContext";
+import OrderTracker from "@/components/OrderTracker";
 
 const OrderDetail = () => {
   const { id } = useParams();
@@ -69,14 +70,6 @@ const OrderDetail = () => {
     }
   };
 
-  const trackingSteps = [
-    { status: "pending", label: "Order Placed", completed: true },
-    { status: "confirmed", label: "Confirmed", completed: ["confirmed", "processing", "shipped", "delivered"].includes(order.status) },
-    { status: "processing", label: "Processing", completed: ["processing", "shipped", "delivered"].includes(order.status) },
-    { status: "shipped", label: "Shipped", completed: ["shipped", "delivered"].includes(order.status) },
-    { status: "delivered", label: "Delivered", completed: order.status === "delivered" },
-  ];
-
   return (
     <div className="min-h-screen bg-background pb-20">
       <header className="sticky top-0 z-40 bg-primary text-primary-foreground shadow-lg">
@@ -114,38 +107,11 @@ const OrderDetail = () => {
 
           <Separator />
 
-          {/* Tracking Timeline */}
+          {/* Order Tracking */}
           {order.status !== "cancelled" && (
             <div className="space-y-4">
               <h3 className="font-semibold text-foreground">Order Tracking</h3>
-              <div className="space-y-3">
-                {trackingSteps.map((step, index) => (
-                  <div key={step.status} className="flex items-center gap-4">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-                        step.completed
-                          ? "bg-accent text-accent-foreground"
-                          : "bg-muted text-muted-foreground"
-                      }`}
-                    >
-                      {step.completed ? (
-                        <CheckCircle className="w-5 h-5" />
-                      ) : (
-                        <div className="w-2 h-2 rounded-full bg-current" />
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <p
-                        className={`font-medium ${
-                          step.completed ? "text-foreground" : "text-muted-foreground"
-                        }`}
-                      >
-                        {step.label}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <OrderTracker status={order.status} updatedAt={order.updatedAt} />
             </div>
           )}
         </Card>

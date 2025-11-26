@@ -5,6 +5,7 @@ import { MerchantCard } from "@/components/MerchantCard";
 import { ProductCard } from "@/components/ProductCard";
 import { CategoryFilter } from "@/components/CategoryFilter";
 import { BottomNav } from "@/components/BottomNav";
+import SearchFilterDialog from "@/components/SearchFilterDialog";
 import Chat from "./Chat";
 import Profile from "./Profile";
 import { CATEGORIES, MERCHANTS, PRODUCTS } from "@/data/mockData";
@@ -15,6 +16,7 @@ const Index = () => {
   const [activeCategory, setActiveCategory] = useState("All");
   const [pinnedMerchants, setPinnedMerchants] = useState<number[]>([]);
   const [pinnedProducts, setPinnedProducts] = useState<string[]>([]);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const handleTabChange = (tab: string) => {
     if (tab === "cart") {
@@ -44,6 +46,14 @@ const Index = () => {
     if (activeTab === "profile") {
       return <Profile />;
     }
+
+  const filteredMerchants = activeCategory === "All" 
+      ? MERCHANTS 
+      : MERCHANTS.filter(m => m.category === activeCategory);
+
+    const filteredProducts = activeCategory === "All"
+      ? PRODUCTS
+      : PRODUCTS.filter(p => p.category === activeCategory);
 
     if (activeTab === "merchants") {
       return (
@@ -75,7 +85,7 @@ const Index = () => {
           />
 
           <div className="space-y-3">
-            {MERCHANTS.map((merchant) => (
+            {filteredMerchants.map((merchant) => (
               <div key={merchant.id} onClick={() => navigate(`/merchant/${merchant.id}`)}>
                 <MerchantCard
                   {...merchant}
@@ -119,7 +129,7 @@ const Index = () => {
           />
 
           <div className="space-y-3">
-            {PRODUCTS.map((product) => (
+            {filteredProducts.map((product) => (
               <ProductCard
                 key={product.id}
                 {...product}
@@ -145,13 +155,23 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
+      {/* Search Dialog */}
+      <SearchFilterDialog 
+        open={searchOpen} 
+        onOpenChange={setSearchOpen}
+        type={activeTab === "merchants" ? "merchants" : "products"}
+      />
+
       {/* Header */}
       <header className="sticky top-0 z-40 bg-primary text-primary-foreground shadow-lg">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-2xl font-bold">
             {activeTab === "merchants" ? "Featured Merchants" : "Featured Products"}
           </h1>
-          <button className="w-14 h-14 rounded-full bg-accent flex items-center justify-center hover:bg-accent/90 transition-colors shadow-lg">
+          <button 
+            onClick={() => setSearchOpen(true)}
+            className="w-14 h-14 rounded-full bg-accent flex items-center justify-center hover:bg-accent/90 transition-colors shadow-lg"
+          >
             <Search className="w-6 h-6 text-accent-foreground" />
           </button>
         </div>
