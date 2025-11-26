@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Settings, MapPin, Phone, Mail, Edit, Pin, Store, Shield, Package } from "lucide-react";
+import { Settings, MapPin, Phone, Mail, Edit, Pin, Store, Shield, Package, FileText } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -102,6 +102,18 @@ const Profile = () => {
             </Button>
 
             <Button
+              onClick={() => navigate("/quotations")}
+              variant="outline"
+              className="h-auto py-4 flex flex-col items-start border-accent text-accent hover:bg-accent/10"
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <FileText className="w-5 h-5" />
+                <span className="font-semibold">My Quotations</span>
+              </div>
+              <span className="text-xs opacity-75">View and manage quote requests</span>
+            </Button>
+
+            <Button
               onClick={() => navigate("/merchant-dashboard")}
               variant="outline"
               className="h-auto py-4 flex flex-col items-start border-accent text-accent hover:bg-accent/10"
@@ -116,7 +128,7 @@ const Profile = () => {
             <Button
               onClick={() => navigate("/admin-dashboard")}
               variant="outline"
-              className="h-auto py-4 flex flex-col items-start border-accent text-accent hover:bg-accent/10 md:col-span-2"
+              className="h-auto py-4 flex flex-col items-start border-accent text-accent hover:bg-accent/10"
             >
               <div className="flex items-center gap-2 mb-1">
                 <Shield className="w-5 h-5" />
