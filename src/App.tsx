@@ -7,6 +7,7 @@ import { CartProvider } from "./contexts/CartContext";
 import { OrderProvider } from "./contexts/OrderContext";
 import { QuotationProvider } from "./contexts/QuotationContext";
 import Index from "./pages/Index";
+import Auth from "./pages/Auth";
 import MerchantDetail from "./pages/MerchantDetail";
 import ProductDetail from "./pages/ProductDetail";
 import Cart from "./pages/Cart";
@@ -29,8 +30,9 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
+          <Routes>
+            <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
                 <Route path="/merchant/:id" element={<MerchantDetail />} />
                 <Route path="/product/:id" element={<ProductDetail />} />
                 <Route path="/cart" element={<Cart />} />
