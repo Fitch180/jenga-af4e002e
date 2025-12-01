@@ -10,12 +10,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { MERCHANTS, PRODUCTS } from "@/data/mockData";
 import { ProductCard } from "@/components/ProductCard";
 import { useQuotations } from "@/contexts/QuotationContext";
+import { useChat } from "@/hooks/useChat";
+import { useAuth } from "@/hooks/useAuth";
 
 
 const MerchantDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { addQuotation } = useQuotations();
+  const { getOrCreateConversation } = useChat();
   const [quotationRequest, setQuotationRequest] = useState("");
   const [quotationItems, setQuotationItems] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -84,6 +88,25 @@ const MerchantDetail = () => {
 
   const openMap = () => {
     window.open(`https://www.google.com/maps/search/${encodeURIComponent(merchant.location)}`, "_blank");
+  };
+
+  const handleStartChat = async () => {
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+
+    if (!merchant) return;
+
+    const conversationId = await getOrCreateConversation(
+      merchant.id,
+      merchant.name,
+      merchant.image
+    );
+
+    if (conversationId) {
+      navigate("/chat");
+    }
   };
 
   return (
@@ -163,7 +186,7 @@ const MerchantDetail = () => {
             <Button 
               variant="outline" 
               className="flex-1"
-              onClick={() => navigate("/chat")}
+              onClick={handleStartChat}
             >
               <MessageSquare className="w-4 h-4 mr-2" />
               Message
