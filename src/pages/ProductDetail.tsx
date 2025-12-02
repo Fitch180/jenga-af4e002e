@@ -3,13 +3,14 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, ShoppingCart, Plus, Minus, Store } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { PRODUCTS, MERCHANTS } from "@/data/mockData";
 import { useCart } from "@/contexts/CartContext";
 
 export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { addToCart } = useCart();
+  const { addToCart, totalItems } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   
@@ -53,11 +54,24 @@ export default function ProductDetail() {
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <header className="bg-primary text-primary-foreground sticky top-0 z-10 shadow-md">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
-          <button onClick={() => navigate(-1)} className="hover:opacity-80 transition-opacity">
-            <ArrowLeft className="w-6 h-6" />
+        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button onClick={() => navigate(-1)} className="hover:opacity-80 transition-opacity">
+              <ArrowLeft className="w-6 h-6" />
+            </button>
+            <h1 className="text-xl font-bold">Product Details</h1>
+          </div>
+          <button
+            onClick={() => navigate("/cart")}
+            className="relative hover:opacity-80 transition-opacity"
+          >
+            <ShoppingCart className="w-6 h-6" />
+            {totalItems > 0 && (
+              <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 bg-accent text-accent-foreground text-xs">
+                {totalItems}
+              </Badge>
+            )}
           </button>
-          <h1 className="text-xl font-bold">Product Details</h1>
         </div>
       </header>
 
