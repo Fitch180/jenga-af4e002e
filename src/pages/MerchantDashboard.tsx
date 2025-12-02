@@ -1,15 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Package, ShoppingCart, TrendingUp, Plus, Edit, Trash2, FileText, Upload } from "lucide-react";
+import { ArrowLeft, Package, ShoppingCart, TrendingUp, Plus, Edit, Trash2, FileText, Upload, Send, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PRODUCTS } from "@/data/mockData";
 import { toast } from "sonner";
 import ProductFormDialog from "@/components/merchant/ProductFormDialog";
 import DeleteConfirmDialog from "@/components/merchant/DeleteConfirmDialog";
 import BulkUploadDialog from "@/components/merchant/BulkUploadDialog";
+import { useMerchantChat } from "@/hooks/useMerchantChat";
 
 interface ProductVariant {
   id: string;
@@ -40,6 +43,20 @@ const MerchantDashboard = () => {
   const navigate = useNavigate();
   const merchantId = 1; // Mock merchant ID - will be from auth in production
   const merchantName = "Dar Ceramica Center";
+  const merchantUserId = "merchant-user-1"; // Mock merchant user ID
+  
+  const {
+    conversations,
+    messages,
+    loading: chatLoading,
+    loadMessages,
+    sendMessage,
+    markAsRead,
+  } = useMerchantChat(merchantId);
+
+  const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
+  const [newMessage, setNewMessage] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const [products, setProducts] = useState<Product[]>(
     PRODUCTS.filter((p) => p.merchantId === merchantId).map((p) => ({
@@ -137,6 +154,26 @@ const MerchantDashboard = () => {
     toast.success(`${newProducts.length} products uploaded successfully`);
   };
 
+  // Chat functions
+  useEffect(() => {
+    if (selectedConversation) {
+      loadMessages(selectedConversation);
+      markAsRead(selectedConversation);
+    }
+  }, [selectedConversation]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !selectedConversation) return;
+    await sendMessage(selectedConversation, newMessage, merchantUserId);
+    setNewMessage("");
+  };
+
+  const selectedConv = conversations.find((c) => c.id === selectedConversation);
+
   return (
     <div className="min-h-screen bg-background pb-6">
       <header className="sticky top-0 z-40 bg-primary text-primary-foreground shadow-lg">
@@ -203,6 +240,14 @@ const MerchantDashboard = () => {
         <Tabs defaultValue="products" className="w-full">
           <TabsList className="w-full justify-start">
             <TabsTrigger value="products">Products</TabsTrigger>
+            <TabsTrigger value="messages">
+              Messages
+              {conversations.filter(c => c.unread).length > 0 && (
+                <Badge variant="destructive" className="ml-2 px-1.5 py-0 text-xs">
+                  {conversations.filter(c => c.unread).length}
+                </Badge>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="quotations">Quotations</TabsTrigger>
             <TabsTrigger value="orders">Orders</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
@@ -284,6 +329,124 @@ const MerchantDashboard = () => {
                 ))
               )}
             </div>
+          </TabsContent>
+
+          <TabsContent value="messages" className="space-y-4 mt-6">
+            {!selectedConversation ? (
+              <>
+                <h2 className="text-xl font-bold text-foreground">Customer Messages</h2>
+                {chatLoading ? (
+                  <Card className="p-8 text-center">
+                    <p className="text-muted-foreground">Loading conversations...</p>
+                  </Card>
+                ) : conversations.length === 0 ? (
+                  <Card className="p-8 text-center">
+                    <MessageSquare className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+                    <p className="text-muted-foreground">No customer messages yet.</p>
+                  </Card>
+                ) : (
+                  <div className="space-y-3">
+                    {conversations.map((conv) => (
+                      <Card
+                        key={conv.id}
+                        className="p-4 cursor-pointer hover:shadow-md transition-shadow"
+                        onClick={() => setSelectedConversation(conv.id)}
+                      >
+                        <div className="flex items-center gap-4">
+                          <Avatar className="w-14 h-14">
+                            <AvatarFallback>U</AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-foreground truncate">
+                              Customer {conv.user_id.slice(0, 8)}
+                            </h3>
+                            <p className="text-sm text-muted-foreground truncate">
+                              {conv.last_message || "No messages yet"}
+                            </p>
+                          </div>
+                          {conv.unread && (
+                            <div className="w-3 h-3 rounded-full bg-accent flex-shrink-0" />
+                          )}
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedConversation(null)}
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Back
+                  </Button>
+                  <Avatar className="w-10 h-10">
+                    <AvatarFallback>U</AvatarFallback>
+                  </Avatar>
+                  <h2 className="text-xl font-bold text-foreground">
+                    Customer {selectedConv?.user_id.slice(0, 8)}
+                  </h2>
+                </div>
+
+                <Card className="p-4 min-h-[400px] max-h-[500px] overflow-y-auto">
+                  <div className="space-y-4">
+                    {messages.map((message) => (
+                      <div
+                        key={message.id}
+                        className={`flex ${
+                          message.sender_type === "merchant" ? "justify-end" : "justify-start"
+                        }`}
+                      >
+                        <div
+                          className={`max-w-[75%] rounded-lg p-3 ${
+                            message.sender_type === "merchant"
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted text-foreground"
+                          }`}
+                        >
+                          {message.text && <p className="text-sm">{message.text}</p>}
+                          {message.image_url && (
+                            <img
+                              src={message.image_url}
+                              alt="Shared"
+                              className="rounded mt-2 max-w-full"
+                            />
+                          )}
+                          <p className="text-xs opacity-70 mt-1">
+                            {new Date(message.created_at).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    <div ref={messagesEndRef} />
+                  </div>
+                </Card>
+
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+                    placeholder="Type a message..."
+                    className="flex-1"
+                  />
+                  <Button
+                    onClick={handleSendMessage}
+                    size="icon"
+                    className="bg-accent hover:bg-accent/90"
+                  >
+                    <Send className="w-5 h-5" />
+                  </Button>
+                </div>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="quotations" className="space-y-4 mt-6">
