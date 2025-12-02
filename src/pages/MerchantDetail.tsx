@@ -105,7 +105,7 @@ const MerchantDetail = () => {
     );
 
     if (conversationId) {
-      navigate("/chat");
+      navigate(`/chat?conversation=${conversationId}`);
     }
   };
 

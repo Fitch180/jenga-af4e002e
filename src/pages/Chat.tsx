@@ -34,6 +34,16 @@ const Chat = () => {
     }
   }, [user, authLoading, navigate]);
 
+  // Auto-select conversation from URL params
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const conversationId = params.get("conversation");
+    
+    if (conversationId && conversations.length > 0) {
+      setSelectedConversation(conversationId);
+    }
+  }, [conversations]);
+
   // Load messages when conversation is selected
   useEffect(() => {
     if (selectedConversation) {
