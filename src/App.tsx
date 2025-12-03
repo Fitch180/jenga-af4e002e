@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CartProvider } from "./contexts/CartContext";
 import { OrderProvider } from "./contexts/OrderContext";
 import { QuotationProvider } from "./contexts/QuotationContext";
+import { PinnedProvider } from "./contexts/PinnedContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import MerchantDetail from "./pages/MerchantDetail";
@@ -28,9 +29,10 @@ const App = () => (
       <OrderProvider>
         <QuotationProvider>
           <CartProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
+            <PinnedProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
@@ -46,8 +48,9 @@ const App = () => (
                 <Route path="/admin-dashboard" element={<AdminDashboard />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
+                </Routes>
+              </BrowserRouter>
+            </PinnedProvider>
           </CartProvider>
         </QuotationProvider>
       </OrderProvider>

@@ -9,14 +9,14 @@ import SearchFilterDialog from "@/components/SearchFilterDialog";
 import Chat from "./Chat";
 import Profile from "./Profile";
 import { CATEGORIES, MERCHANTS, PRODUCTS } from "@/data/mockData";
+import { usePinned } from "@/contexts/PinnedContext";
 
 const Index = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("merchants");
   const [activeCategory, setActiveCategory] = useState("All");
-  const [pinnedMerchants, setPinnedMerchants] = useState<number[]>([]);
-  const [pinnedProducts, setPinnedProducts] = useState<string[]>([]);
   const [searchOpen, setSearchOpen] = useState(false);
+  const { isMerchantPinned, isProductPinned, toggleMerchantPin, toggleProductPin } = usePinned();
 
   const handleTabChange = (tab: string) => {
     if (tab === "cart") {
@@ -24,18 +24,6 @@ const Index = () => {
     } else {
       setActiveTab(tab);
     }
-  };
-
-  const toggleMerchantPin = (id: number) => {
-    setPinnedMerchants((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
-  };
-
-  const toggleProductPin = (id: string) => {
-    setPinnedProducts((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-    );
   };
 
   const renderContent = () => {
@@ -89,7 +77,7 @@ const Index = () => {
               <div key={merchant.id} onClick={() => navigate(`/merchant/${merchant.id}`)}>
                 <MerchantCard
                   {...merchant}
-                  isPinned={pinnedMerchants.includes(merchant.id)}
+                  isPinned={isMerchantPinned(merchant.id)}
                   onPin={() => toggleMerchantPin(merchant.id)}
                 />
               </div>
@@ -133,7 +121,7 @@ const Index = () => {
               <ProductCard
                 key={product.id}
                 {...product}
-                isPinned={pinnedProducts.includes(product.id)}
+                isPinned={isProductPinned(product.id)}
                 onPin={() => toggleProductPin(product.id)}
               />
             ))}
