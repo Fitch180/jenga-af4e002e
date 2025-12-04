@@ -1,4 +1,4 @@
-import { User, Mail, MapPin, Heart, Clock, FileText, LogOut } from "lucide-react";
+import { User, Mail, MapPin, Heart, Clock, FileText, LogOut, BookMarked } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -6,10 +6,13 @@ import { BottomNav } from "@/components/BottomNav";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect } from "react";
+import { usePinned } from "@/contexts/PinnedContext";
 
 const Profile = () => {
   const navigate = useNavigate();
   const { user, loading, signOut } = useAuth();
+  const { pinnedMerchants, pinnedProducts } = usePinned();
+  const totalPinned = pinnedMerchants.length + pinnedProducts.length;
 
   useEffect(() => {
     if (!loading && !user) {
@@ -82,6 +85,24 @@ const Profile = () => {
                   <span className="font-semibold">My Quotations</span>
                 </div>
                 <span className="text-xs opacity-75">View and manage quote requests</span>
+              </Button>
+            </Link>
+
+            <Link to="/journal">
+              <Button
+                variant="outline"
+                className="w-full h-auto py-4 flex flex-col items-start border-accent text-accent hover:bg-accent/10"
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <BookMarked className="w-5 h-5" />
+                  <span className="font-semibold">My Journal</span>
+                  {totalPinned > 0 && (
+                    <span className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
+                      {totalPinned}
+                    </span>
+                  )}
+                </div>
+                <span className="text-xs opacity-75">Pinned merchants and products</span>
               </Button>
             </Link>
 
