@@ -35,7 +35,7 @@ const Index = () => {
       return <Profile />;
     }
 
-  const filteredMerchants = activeCategory === "All" 
+    const filteredMerchants = activeCategory === "All" 
       ? MERCHANTS 
       : MERCHANTS.filter(m => m.category === activeCategory);
 
@@ -43,27 +43,37 @@ const Index = () => {
       ? PRODUCTS
       : PRODUCTS.filter(p => p.category === activeCategory);
 
+    const pinnedMerchantsList = MERCHANTS.filter(m => isMerchantPinned(m.id));
+    const pinnedProductsList = PRODUCTS.filter(p => isProductPinned(p.id));
+
     if (activeTab === "merchants") {
       return (
         <div className="space-y-6">
-          <div>
-            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-              {MERCHANTS.slice(0, 5).map((merchant) => (
-                <div key={merchant.id} className="flex-shrink-0 w-24">
-                  <div className="w-20 h-20 rounded-full overflow-hidden bg-muted mx-auto mb-2">
-                    <img
-                      src={merchant.image}
-                      alt={merchant.name}
-                      className="w-full h-full object-cover"
-                    />
+          {pinnedMerchantsList.length > 0 && (
+            <div>
+              <h2 className="text-xl font-semibold text-foreground mb-4">Pinned</h2>
+              <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+                {pinnedMerchantsList.map((merchant) => (
+                  <div 
+                    key={merchant.id} 
+                    className="flex-shrink-0 w-24 cursor-pointer"
+                    onClick={() => toggleMerchantPin(merchant.id)}
+                  >
+                    <div className="w-20 h-20 rounded-full overflow-hidden bg-muted mx-auto mb-2 ring-2 ring-primary">
+                      <img
+                        src={merchant.image}
+                        alt={merchant.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <p className="text-xs text-center text-muted-foreground truncate">
+                      {merchant.name}
+                    </p>
                   </div>
-                  <p className="text-xs text-center text-muted-foreground truncate">
-                    {merchant.name}
-                  </p>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <CategoryFilter
             categories={CATEGORIES}
@@ -89,24 +99,31 @@ const Index = () => {
     if (activeTab === "products") {
       return (
         <div className="space-y-6">
-          <div>
-            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-              {PRODUCTS.slice(0, 5).map((product) => (
-                <div key={product.id} className="flex-shrink-0 w-24">
-                  <div className="w-20 h-20 rounded-full overflow-hidden bg-muted mx-auto mb-2">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
+          {pinnedProductsList.length > 0 && (
+            <div>
+              <h2 className="text-xl font-semibold text-foreground mb-4">Pinned</h2>
+              <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+                {pinnedProductsList.map((product) => (
+                  <div 
+                    key={product.id} 
+                    className="flex-shrink-0 w-24 cursor-pointer"
+                    onClick={() => toggleProductPin(product.id)}
+                  >
+                    <div className="w-20 h-20 rounded-full overflow-hidden bg-muted mx-auto mb-2 ring-2 ring-primary">
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <p className="text-xs text-center text-muted-foreground truncate">
+                      {product.name}
+                    </p>
                   </div>
-                  <p className="text-xs text-center text-muted-foreground truncate">
-                    {product.name}
-                  </p>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <CategoryFilter
             categories={CATEGORIES}
