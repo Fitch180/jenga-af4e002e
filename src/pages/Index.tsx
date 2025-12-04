@@ -47,7 +47,7 @@ const Index = () => {
       return (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-foreground mb-4">Featured Merchants</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-4">Featured</h2>
             <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
               {MERCHANTS.slice(0, 5).map((merchant) => (
                 <div key={merchant.id} className="flex-shrink-0 w-24">
@@ -91,7 +91,7 @@ const Index = () => {
       return (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-foreground mb-4">Featured Products</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-4">Featured</h2>
             <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
               {PRODUCTS.slice(0, 5).map((product) => (
                 <div key={product.id} className="flex-shrink-0 w-24">
@@ -153,8 +153,8 @@ const Index = () => {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-primary text-primary-foreground shadow-lg">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold">
-            {activeTab === "merchants" ? "Featured Merchants" : "Featured Products"}
+        <h1 className="text-2xl font-bold">
+            {activeTab === "merchants" ? "Merchants" : "Products"}
           </h1>
           <button 
             onClick={() => setSearchOpen(true)}
