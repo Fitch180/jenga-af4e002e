@@ -8,6 +8,7 @@ import { BottomNav } from "@/components/BottomNav";
 import SearchFilterDialog from "@/components/SearchFilterDialog";
 import Chat from "./Chat";
 import Profile from "./Profile";
+import Journal from "./Journal";
 import { CATEGORIES, MERCHANTS, PRODUCTS } from "@/data/mockData";
 import { usePinned } from "@/contexts/PinnedContext";
 
@@ -33,6 +34,10 @@ const Index = () => {
 
     if (activeTab === "profile") {
       return <Profile />;
+    }
+
+    if (activeTab === "journal") {
+      return <Journal />;
     }
 
     const filteredMerchants = activeCategory === "All" 
@@ -146,8 +151,8 @@ const Index = () => {
     }
   };
 
-  // For chat and profile tabs, render them full-screen without header
-  if (activeTab === "notifications" || activeTab === "profile") {
+  // For chat, profile, and journal tabs, render them full-screen without header
+  if (activeTab === "notifications" || activeTab === "profile" || activeTab === "journal") {
     return (
       <div className="min-h-screen bg-background">
         {renderContent()}
