@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Pin, Trash2, Store, Package } from "lucide-react";
+import { Pin, Trash2, Store, Package, ArrowLeft } from "lucide-react";
 import { usePinned } from "@/contexts/PinnedContext";
 import { MERCHANTS, PRODUCTS } from "@/data/mockData";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -40,17 +40,26 @@ const Journal = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-6">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-primary text-primary-foreground shadow-lg">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
-            <Pin className="w-6 h-6" />
-            <h1 className="text-2xl font-bold">Journal</h1>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-primary-foreground hover:bg-primary-foreground/10"
+              onClick={() => navigate(-1)}
+            >
+              <ArrowLeft className="w-6 h-6" />
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold">Journal</h1>
+              <p className="text-primary-foreground/80 text-sm">
+                Manage your pinned merchants and products
+              </p>
+            </div>
           </div>
-          <p className="text-primary-foreground/80 text-sm mt-1">
-            Manage your pinned merchants and products
-          </p>
         </div>
       </header>
 

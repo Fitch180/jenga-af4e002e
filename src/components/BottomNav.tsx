@@ -1,4 +1,4 @@
-import { Home, Package, MessageSquare, User, BookMarked } from "lucide-react";
+import { Home, Package, MessageSquare, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MiniCart } from "@/components/MiniCart";
 
@@ -11,7 +11,6 @@ export const BottomNav = ({ activeTab, onTabChange }: BottomNavProps) => {
   const tabs = [
     { id: "merchants", label: "Merchants", icon: Home },
     { id: "products", label: "Products", icon: Package },
-    { id: "journal", label: "Journal", icon: BookMarked },
     { id: "cart", label: "Cart", icon: null }, // Cart uses MiniCart component
     { id: "notifications", label: "Chat", icon: MessageSquare },
     { id: "profile", label: "Profile", icon: User },
