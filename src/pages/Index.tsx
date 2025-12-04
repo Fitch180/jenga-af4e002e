@@ -47,7 +47,6 @@ const Index = () => {
       return (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-foreground mb-4">Featured</h2>
             <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
               {MERCHANTS.slice(0, 5).map((merchant) => (
                 <div key={merchant.id} className="flex-shrink-0 w-24">
@@ -91,7 +90,6 @@ const Index = () => {
       return (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-foreground mb-4">Featured</h2>
             <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
               {PRODUCTS.slice(0, 5).map((product) => (
                 <div key={product.id} className="flex-shrink-0 w-24">
