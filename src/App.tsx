@@ -17,6 +17,7 @@ import Orders from "./pages/Orders";
 import OrderDetail from "./pages/OrderDetail";
 import Quotations from "./pages/Quotations";
 import Journal from "./pages/Journal";
+import PinnedItems from "./pages/PinnedItems";
 import MerchantDashboard from "./pages/MerchantDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import Chat from "./pages/Chat";
@@ -45,6 +46,7 @@ const App = () => (
                 <Route path="/orders/:id" element={<OrderDetail />} />
                 <Route path="/quotations" element={<Quotations />} />
                 <Route path="/journal" element={<Journal />} />
+                <Route path="/pinned" element={<PinnedItems />} />
                 <Route path="/chat" element={<Chat />} />
                 <Route path="/merchant-dashboard" element={<MerchantDashboard />} />
                 <Route path="/admin-dashboard" element={<AdminDashboard />} />

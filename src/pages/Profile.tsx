@@ -1,4 +1,4 @@
-import { User, Mail, MapPin, Heart, Clock, FileText, LogOut, BookMarked } from "lucide-react";
+import { User, Mail, MapPin, Heart, Clock, FileText, LogOut, BookMarked, Pin, NotebookPen } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -94,15 +94,28 @@ const Profile = () => {
                 className="w-full h-auto py-4 flex flex-col items-start border-accent text-accent hover:bg-accent/10"
               >
                 <div className="flex items-center gap-2 mb-1">
-                  <BookMarked className="w-5 h-5" />
+                  <NotebookPen className="w-5 h-5" />
                   <span className="font-semibold">My Journal</span>
+                </div>
+                <span className="text-xs opacity-75">Record activities and building wishes</span>
+              </Button>
+            </Link>
+
+            <Link to="/pinned">
+              <Button
+                variant="outline"
+                className="w-full h-auto py-4 flex flex-col items-start border-accent text-accent hover:bg-accent/10"
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <Pin className="w-5 h-5" />
+                  <span className="font-semibold">Pinned Items</span>
                   {totalPinned > 0 && (
                     <span className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
                       {totalPinned}
                     </span>
                   )}
                 </div>
-                <span className="text-xs opacity-75">Pinned merchants and products</span>
+                <span className="text-xs opacity-75">Saved merchants and products</span>
               </Button>
             </Link>
 
