@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Search, Pin } from "lucide-react";
 import { MerchantCard } from "@/components/MerchantCard";
 import { ProductCard } from "@/components/ProductCard";
 import { CategoryFilter } from "@/components/CategoryFilter";
@@ -55,17 +55,33 @@ const Index = () => {
                 {pinnedMerchantsList.map((merchant) => (
                   <div 
                     key={merchant.id} 
-                    className="flex-shrink-0 w-24 cursor-pointer"
-                    onClick={() => toggleMerchantPin(merchant.id)}
+                    className="flex-shrink-0 w-24"
                   >
-                    <div className="w-20 h-20 rounded-full overflow-hidden bg-muted mx-auto mb-2 ring-2 ring-primary">
-                      <img
-                        src={merchant.image}
-                        alt={merchant.name}
-                        className="w-full h-full object-cover"
-                      />
+                    <div className="relative mx-auto mb-2">
+                      <div 
+                        className="w-20 h-20 rounded-full overflow-hidden bg-muted ring-2 ring-primary cursor-pointer"
+                        onClick={() => navigate(`/merchant/${merchant.id}`)}
+                      >
+                        <img
+                          src={merchant.image}
+                          alt={merchant.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleMerchantPin(merchant.id);
+                        }}
+                        className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-primary flex items-center justify-center shadow-md hover:bg-primary/80 transition-colors"
+                      >
+                        <Pin className="w-3 h-3 text-primary-foreground fill-primary-foreground" />
+                      </button>
                     </div>
-                    <p className="text-xs text-center text-muted-foreground truncate">
+                    <p 
+                      className="text-xs text-center text-muted-foreground truncate cursor-pointer"
+                      onClick={() => navigate(`/merchant/${merchant.id}`)}
+                    >
                       {merchant.name}
                     </p>
                   </div>
@@ -104,17 +120,33 @@ const Index = () => {
                 {pinnedProductsList.map((product) => (
                   <div 
                     key={product.id} 
-                    className="flex-shrink-0 w-24 cursor-pointer"
-                    onClick={() => toggleProductPin(product.id)}
+                    className="flex-shrink-0 w-24"
                   >
-                    <div className="w-20 h-20 rounded-full overflow-hidden bg-muted mx-auto mb-2 ring-2 ring-primary">
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-full h-full object-cover"
-                      />
+                    <div className="relative mx-auto mb-2">
+                      <div 
+                        className="w-20 h-20 rounded-full overflow-hidden bg-muted ring-2 ring-primary cursor-pointer"
+                        onClick={() => navigate(`/product/${product.id}`)}
+                      >
+                        <img
+                          src={product.image}
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleProductPin(product.id);
+                        }}
+                        className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-primary flex items-center justify-center shadow-md hover:bg-primary/80 transition-colors"
+                      >
+                        <Pin className="w-3 h-3 text-primary-foreground fill-primary-foreground" />
+                      </button>
                     </div>
-                    <p className="text-xs text-center text-muted-foreground truncate">
+                    <p 
+                      className="text-xs text-center text-muted-foreground truncate cursor-pointer"
+                      onClick={() => navigate(`/product/${product.id}`)}
+                    >
                       {product.name}
                     </p>
                   </div>
