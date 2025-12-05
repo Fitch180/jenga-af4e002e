@@ -1,4 +1,4 @@
-import { User, Mail, MapPin, Heart, Clock, FileText, LogOut, BookMarked, Pin, NotebookPen } from "lucide-react";
+import { User, Mail, Settings, Store, Clock, FileText, LogOut, Pin, NotebookPen } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -59,89 +59,77 @@ const Profile = () => {
           </div>
         </Card>
 
-        {/* Quick Access Section */}
+        {/* Quick Access Section - Dashboards */}
         <Card className="p-6">
           <h3 className="text-lg font-semibold text-foreground mb-4">Quick Access</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <Link to="/orders">
-              <Button
-                className="w-full bg-accent hover:bg-accent/90 text-accent-foreground h-auto py-4 flex flex-col items-start"
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <Clock className="w-5 h-5" />
-                  <span className="font-semibold">My Orders</span>
-                </div>
-                <span className="text-xs opacity-90">View order history and tracking</span>
-              </Button>
-            </Link>
-
-            <Link to="/quotations">
-              <Button
-                variant="outline"
-                className="w-full h-auto py-4 flex flex-col items-start border-accent text-accent hover:bg-accent/10"
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <FileText className="w-5 h-5" />
-                  <span className="font-semibold">My Quotations</span>
-                </div>
-                <span className="text-xs opacity-75">View and manage quote requests</span>
-              </Button>
-            </Link>
-
-            <Link to="/journal">
-              <Button
-                variant="outline"
-                className="w-full h-auto py-4 flex flex-col items-start border-accent text-accent hover:bg-accent/10"
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <NotebookPen className="w-5 h-5" />
-                  <span className="font-semibold">My Journal</span>
-                </div>
-                <span className="text-xs opacity-75">Record activities and building wishes</span>
-              </Button>
-            </Link>
-
-            <Link to="/pinned">
-              <Button
-                variant="outline"
-                className="w-full h-auto py-4 flex flex-col items-start border-accent text-accent hover:bg-accent/10"
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <Pin className="w-5 h-5" />
-                  <span className="font-semibold">Pinned Items</span>
-                  {totalPinned > 0 && (
-                    <span className="bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
-                      {totalPinned}
-                    </span>
-                  )}
-                </div>
-                <span className="text-xs opacity-75">Saved merchants and products</span>
-              </Button>
-            </Link>
-
+          <div className="grid grid-cols-2 gap-3">
             <Link to="/merchant-dashboard">
               <Button
-                variant="outline"
-                className="w-full h-auto py-4 flex flex-col items-start border-accent text-accent hover:bg-accent/10"
+                className="w-full bg-accent hover:bg-accent/90 text-accent-foreground h-auto py-4 flex flex-col items-center"
               >
-                <div className="flex items-center gap-2 mb-1">
-                  <Heart className="w-5 h-5" />
-                  <span className="font-semibold">Merchant Dashboard</span>
-                </div>
-                <span className="text-xs opacity-75">Manage your products and orders</span>
+                <Store className="w-6 h-6 mb-2" />
+                <span className="font-semibold text-sm">Merchant Dashboard</span>
               </Button>
             </Link>
             
             <Link to="/admin-dashboard">
               <Button
                 variant="outline"
-                className="w-full h-auto py-4 flex flex-col items-start border-accent text-accent hover:bg-accent/10"
+                className="w-full h-auto py-4 flex flex-col items-center border-accent text-accent hover:bg-accent/10"
               >
-                <div className="flex items-center gap-2 mb-1">
-                  <MapPin className="w-5 h-5" />
-                  <span className="font-semibold">Admin Dashboard</span>
-                </div>
-                <span className="text-xs opacity-75">Manage platform and merchants</span>
+                <Settings className="w-6 h-6 mb-2" />
+                <span className="font-semibold text-sm">Admin Dashboard</span>
+              </Button>
+            </Link>
+          </div>
+        </Card>
+
+        {/* My Items Section */}
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold text-foreground mb-4">My Items</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <Link to="/orders">
+              <Button
+                variant="outline"
+                className="w-full h-auto py-4 flex flex-col items-center border-border hover:bg-muted"
+              >
+                <Clock className="w-6 h-6 mb-2 text-primary" />
+                <span className="font-semibold text-sm">My Orders</span>
+              </Button>
+            </Link>
+
+            <Link to="/quotations">
+              <Button
+                variant="outline"
+                className="w-full h-auto py-4 flex flex-col items-center border-border hover:bg-muted"
+              >
+                <FileText className="w-6 h-6 mb-2 text-primary" />
+                <span className="font-semibold text-sm">My Quotations</span>
+              </Button>
+            </Link>
+
+            <Link to="/journal">
+              <Button
+                variant="outline"
+                className="w-full h-auto py-4 flex flex-col items-center border-border hover:bg-muted"
+              >
+                <NotebookPen className="w-6 h-6 mb-2 text-primary" />
+                <span className="font-semibold text-sm">My Journal</span>
+              </Button>
+            </Link>
+
+            <Link to="/pinned">
+              <Button
+                variant="outline"
+                className="w-full h-auto py-4 flex flex-col items-center border-border hover:bg-muted relative"
+              >
+                <Pin className="w-6 h-6 mb-2 text-primary" />
+                <span className="font-semibold text-sm">Pinned Items</span>
+                {totalPinned > 0 && (
+                  <span className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
+                    {totalPinned}
+                  </span>
+                )}
               </Button>
             </Link>
           </div>
