@@ -51,7 +51,6 @@ const Index = () => {
         <div className="space-y-6">
           {pinnedMerchantsList.length > 0 && (
             <div>
-              <h2 className="text-xl font-semibold text-foreground mb-4">Pinned</h2>
               <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
                 {pinnedMerchantsList.map((merchant) => (
                   <div 
@@ -101,7 +100,6 @@ const Index = () => {
         <div className="space-y-6">
           {pinnedProductsList.length > 0 && (
             <div>
-              <h2 className="text-xl font-semibold text-foreground mb-4">Pinned</h2>
               <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
                 {pinnedProductsList.map((product) => (
                   <div 
