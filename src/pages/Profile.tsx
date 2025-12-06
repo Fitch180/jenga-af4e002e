@@ -111,7 +111,7 @@ const Profile = () => {
                 <Clock className="w-6 h-6 mb-2 text-primary" />
                 <span className="font-semibold text-sm">My Orders</span>
                 {ordersCount > 0 && (
-                  <span className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
+                  <span className="absolute top-2 right-2 bg-jenga-orange text-white text-xs px-2 py-0.5 rounded-full">
                     {ordersCount}
                   </span>
                 )}
@@ -126,7 +126,7 @@ const Profile = () => {
                 <FileText className="w-6 h-6 mb-2 text-primary" />
                 <span className="font-semibold text-sm">My Quotations</span>
                 {quotationsCount > 0 && (
-                  <span className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
+                  <span className="absolute top-2 right-2 bg-jenga-orange text-white text-xs px-2 py-0.5 rounded-full">
                     {quotationsCount}
                   </span>
                 )}
@@ -141,7 +141,7 @@ const Profile = () => {
                 <NotebookPen className="w-6 h-6 mb-2 text-primary" />
                 <span className="font-semibold text-sm">My Journal</span>
                 {journalCount > 0 && (
-                  <span className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
+                  <span className="absolute top-2 right-2 bg-jenga-orange text-white text-xs px-2 py-0.5 rounded-full">
                     {journalCount}
                   </span>
                 )}
@@ -156,7 +156,7 @@ const Profile = () => {
                 <Pin className="w-6 h-6 mb-2 text-primary" />
                 <span className="font-semibold text-sm">Pinned Items</span>
                 {totalPinned > 0 && (
-                  <span className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
+                  <span className="absolute top-2 right-2 bg-jenga-orange text-white text-xs px-2 py-0.5 rounded-full">
                     {totalPinned}
                   </span>
                 )}
