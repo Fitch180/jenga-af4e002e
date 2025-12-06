@@ -5,14 +5,29 @@ import { Button } from "@/components/ui/button";
 import { BottomNav } from "@/components/BottomNav";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { usePinned } from "@/contexts/PinnedContext";
+import { useOrders } from "@/contexts/OrderContext";
+import { useQuotations } from "@/contexts/QuotationContext";
 
 const Profile = () => {
   const navigate = useNavigate();
   const { user, loading, signOut } = useAuth();
   const { pinnedMerchants, pinnedProducts } = usePinned();
+  const { orders } = useOrders();
+  const { getUserQuotations } = useQuotations();
   const totalPinned = pinnedMerchants.length + pinnedProducts.length;
+  const ordersCount = orders.length;
+  const quotationsCount = getUserQuotations().length;
+  
+  const [journalCount, setJournalCount] = useState(0);
+  
+  useEffect(() => {
+    const savedEntries = localStorage.getItem("journalEntries");
+    if (savedEntries) {
+      setJournalCount(JSON.parse(savedEntries).length);
+    }
+  }, []);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -91,30 +106,45 @@ const Profile = () => {
             <Link to="/orders">
               <Button
                 variant="outline"
-                className="w-full h-auto py-4 flex flex-col items-center border-border hover:bg-muted"
+                className="w-full h-auto py-4 flex flex-col items-center border-border hover:bg-muted relative"
               >
                 <Clock className="w-6 h-6 mb-2 text-primary" />
                 <span className="font-semibold text-sm">My Orders</span>
+                {ordersCount > 0 && (
+                  <span className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
+                    {ordersCount}
+                  </span>
+                )}
               </Button>
             </Link>
 
             <Link to="/quotations">
               <Button
                 variant="outline"
-                className="w-full h-auto py-4 flex flex-col items-center border-border hover:bg-muted"
+                className="w-full h-auto py-4 flex flex-col items-center border-border hover:bg-muted relative"
               >
                 <FileText className="w-6 h-6 mb-2 text-primary" />
                 <span className="font-semibold text-sm">My Quotations</span>
+                {quotationsCount > 0 && (
+                  <span className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
+                    {quotationsCount}
+                  </span>
+                )}
               </Button>
             </Link>
 
             <Link to="/journal">
               <Button
                 variant="outline"
-                className="w-full h-auto py-4 flex flex-col items-center border-border hover:bg-muted"
+                className="w-full h-auto py-4 flex flex-col items-center border-border hover:bg-muted relative"
               >
                 <NotebookPen className="w-6 h-6 mb-2 text-primary" />
                 <span className="font-semibold text-sm">My Journal</span>
+                {journalCount > 0 && (
+                  <span className="absolute top-2 right-2 bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
+                    {journalCount}
+                  </span>
+                )}
               </Button>
             </Link>
 
