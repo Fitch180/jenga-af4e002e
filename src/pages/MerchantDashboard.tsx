@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Package, ShoppingCart, TrendingUp, Plus, Edit, Trash2, FileText, Upload, Send, MessageSquare } from "lucide-react";
+import { ArrowLeft, Package, ShoppingCart, TrendingUp, Plus, Edit, Trash2, FileText, Upload, Send, MessageSquare, Settings, Camera, MapPin, Phone, Mail, Globe, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { PRODUCTS } from "@/data/mockData";
 import { toast } from "sonner";
@@ -42,8 +44,26 @@ const mockQuotations = [
 const MerchantDashboard = () => {
   const navigate = useNavigate();
   const merchantId = 1; // Mock merchant ID - will be from auth in production
-  const merchantName = "Dar Ceramica Center";
   const merchantUserId = "merchant-user-1"; // Mock merchant user ID
+
+  // Shop profile state
+  const [shopProfile, setShopProfile] = useState({
+    name: "Dar Ceramica Center",
+    description: "Premium ceramic tiles and flooring solutions for your home and business. We offer a wide range of high-quality tiles imported from Italy and Spain.",
+    profileImage: "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=400&h=400&fit=crop",
+    backgroundImage: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&h=400&fit=crop",
+    location: "Kariakoo, Dar es Salaam",
+    phone: "+255 712 345 678",
+    email: "info@darceramica.co.tz",
+    website: "www.darceramica.co.tz",
+    operatingHours: "Mon-Sat: 8:00 AM - 6:00 PM",
+    category: "Building Materials",
+  });
+
+  const [editedProfile, setEditedProfile] = useState(shopProfile);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+
+  const merchantName = shopProfile.name;
   
   const {
     conversations,
@@ -251,6 +271,10 @@ const MerchantDashboard = () => {
             <TabsTrigger value="quotations">Quotations</TabsTrigger>
             <TabsTrigger value="orders">Orders</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="settings">
+              <Settings className="w-4 h-4 mr-1" />
+              Settings
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="products" className="space-y-4 mt-6">
@@ -538,6 +562,250 @@ const MerchantDashboard = () => {
                 </div>
               </div>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="settings" className="space-y-6 mt-6">
+            <h2 className="text-xl font-bold text-foreground">Shop Settings</h2>
+
+            {/* Profile & Background Images */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Shop Images</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Background Image Preview */}
+                <div className="relative w-full h-40 rounded-lg overflow-hidden bg-muted">
+                  <img
+                    src={isEditingProfile ? editedProfile.backgroundImage : shopProfile.backgroundImage}
+                    alt="Shop background"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&h=400&fit=crop";
+                    }}
+                  />
+                  {isEditingProfile && (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                      <div className="text-center">
+                        <Camera className="w-8 h-8 text-white mx-auto mb-2" />
+                        <Label className="text-white text-sm cursor-pointer hover:underline">
+                          Change Background
+                        </Label>
+                        <Input
+                          type="text"
+                          placeholder="Enter image URL"
+                          value={editedProfile.backgroundImage}
+                          onChange={(e) => setEditedProfile({ ...editedProfile, backgroundImage: e.target.value })}
+                          className="mt-2 max-w-xs mx-auto bg-white/90 text-foreground"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Profile Image */}
+                <div className="flex items-center gap-4">
+                  <div className="relative">
+                    <Avatar className="w-24 h-24 border-4 border-background shadow-lg">
+                      <AvatarImage
+                        src={isEditingProfile ? editedProfile.profileImage : shopProfile.profileImage}
+                        alt={shopProfile.name}
+                      />
+                      <AvatarFallback className="text-2xl">{shopProfile.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    {isEditingProfile && (
+                      <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center">
+                        <Camera className="w-6 h-6 text-white" />
+                      </div>
+                    )}
+                  </div>
+                  {isEditingProfile && (
+                    <div className="flex-1">
+                      <Label>Profile Image URL</Label>
+                      <Input
+                        type="text"
+                        placeholder="Enter profile image URL"
+                        value={editedProfile.profileImage}
+                        onChange={(e) => setEditedProfile({ ...editedProfile, profileImage: e.target.value })}
+                      />
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Shop Details */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Shop Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Shop Name</Label>
+                  {isEditingProfile ? (
+                    <Input
+                      value={editedProfile.name}
+                      onChange={(e) => setEditedProfile({ ...editedProfile, name: e.target.value })}
+                      placeholder="Enter shop name"
+                    />
+                  ) : (
+                    <p className="text-foreground font-medium">{shopProfile.name}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Description</Label>
+                  {isEditingProfile ? (
+                    <Textarea
+                      value={editedProfile.description}
+                      onChange={(e) => setEditedProfile({ ...editedProfile, description: e.target.value })}
+                      placeholder="Describe your shop..."
+                      rows={3}
+                    />
+                  ) : (
+                    <p className="text-muted-foreground">{shopProfile.description}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Category</Label>
+                  {isEditingProfile ? (
+                    <Input
+                      value={editedProfile.category}
+                      onChange={(e) => setEditedProfile({ ...editedProfile, category: e.target.value })}
+                      placeholder="e.g., Building Materials"
+                    />
+                  ) : (
+                    <Badge variant="secondary">{shopProfile.category}</Badge>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Contact Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Contact Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-muted-foreground" />
+                      Location
+                    </Label>
+                    {isEditingProfile ? (
+                      <Input
+                        value={editedProfile.location}
+                        onChange={(e) => setEditedProfile({ ...editedProfile, location: e.target.value })}
+                        placeholder="Enter location"
+                      />
+                    ) : (
+                      <p className="text-foreground">{shopProfile.location}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-muted-foreground" />
+                      Phone
+                    </Label>
+                    {isEditingProfile ? (
+                      <Input
+                        value={editedProfile.phone}
+                        onChange={(e) => setEditedProfile({ ...editedProfile, phone: e.target.value })}
+                        placeholder="Enter phone number"
+                      />
+                    ) : (
+                      <p className="text-foreground">{shopProfile.phone}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-muted-foreground" />
+                      Email
+                    </Label>
+                    {isEditingProfile ? (
+                      <Input
+                        value={editedProfile.email}
+                        onChange={(e) => setEditedProfile({ ...editedProfile, email: e.target.value })}
+                        placeholder="Enter email"
+                        type="email"
+                      />
+                    ) : (
+                      <p className="text-foreground">{shopProfile.email}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <Globe className="w-4 h-4 text-muted-foreground" />
+                      Website
+                    </Label>
+                    {isEditingProfile ? (
+                      <Input
+                        value={editedProfile.website}
+                        onChange={(e) => setEditedProfile({ ...editedProfile, website: e.target.value })}
+                        placeholder="Enter website URL"
+                      />
+                    ) : (
+                      <p className="text-foreground">{shopProfile.website}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-muted-foreground" />
+                    Operating Hours
+                  </Label>
+                  {isEditingProfile ? (
+                    <Input
+                      value={editedProfile.operatingHours}
+                      onChange={(e) => setEditedProfile({ ...editedProfile, operatingHours: e.target.value })}
+                      placeholder="e.g., Mon-Sat: 8:00 AM - 6:00 PM"
+                    />
+                  ) : (
+                    <p className="text-foreground">{shopProfile.operatingHours}</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 justify-end">
+              {isEditingProfile ? (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setEditedProfile(shopProfile);
+                      setIsEditingProfile(false);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                    onClick={() => {
+                      setShopProfile(editedProfile);
+                      setIsEditingProfile(false);
+                      toast.success("Shop profile updated successfully!");
+                    }}
+                  >
+                    Save Changes
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  onClick={() => setIsEditingProfile(true)}
+                  className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Profile
+                </Button>
+              )}
+            </div>
           </TabsContent>
         </Tabs>
       </main>
