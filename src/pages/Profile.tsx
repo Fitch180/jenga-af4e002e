@@ -106,12 +106,14 @@ const Profile = () => {
             <Link to="/orders">
               <Button
                 variant="outline"
-                className="w-full h-auto py-4 flex flex-col items-center border-border hover:bg-muted relative"
+                className="w-full h-auto py-5 flex flex-col items-center border-border hover:bg-muted relative group transition-all duration-200 hover:shadow-md"
               >
-                <Clock className="w-6 h-6 mb-2 text-primary" />
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-200 shadow-lg">
+                  <Clock className="w-6 h-6 text-white" />
+                </div>
                 <span className="font-semibold text-sm">My Orders</span>
                 {ordersCount > 0 && (
-                  <span className="absolute top-2 right-2 bg-jenga-orange text-white text-xs px-2 py-0.5 rounded-full">
+                  <span className="absolute top-2 right-2 bg-jenga-orange text-white text-xs px-2 py-0.5 rounded-full animate-pulse">
                     {ordersCount}
                   </span>
                 )}
@@ -121,12 +123,14 @@ const Profile = () => {
             <Link to="/quotations">
               <Button
                 variant="outline"
-                className="w-full h-auto py-4 flex flex-col items-center border-border hover:bg-muted relative"
+                className="w-full h-auto py-5 flex flex-col items-center border-border hover:bg-muted relative group transition-all duration-200 hover:shadow-md"
               >
-                <FileText className="w-6 h-6 mb-2 text-primary" />
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-200 shadow-lg">
+                  <FileText className="w-6 h-6 text-white" />
+                </div>
                 <span className="font-semibold text-sm">My Quotations</span>
                 {quotationsCount > 0 && (
-                  <span className="absolute top-2 right-2 bg-jenga-orange text-white text-xs px-2 py-0.5 rounded-full">
+                  <span className="absolute top-2 right-2 bg-jenga-orange text-white text-xs px-2 py-0.5 rounded-full animate-pulse">
                     {quotationsCount}
                   </span>
                 )}
@@ -136,12 +140,14 @@ const Profile = () => {
             <Link to="/journal">
               <Button
                 variant="outline"
-                className="w-full h-auto py-4 flex flex-col items-center border-border hover:bg-muted relative"
+                className="w-full h-auto py-5 flex flex-col items-center border-border hover:bg-muted relative group transition-all duration-200 hover:shadow-md"
               >
-                <NotebookPen className="w-6 h-6 mb-2 text-primary" />
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-200 shadow-lg">
+                  <NotebookPen className="w-6 h-6 text-white" />
+                </div>
                 <span className="font-semibold text-sm">My Journal</span>
                 {journalCount > 0 && (
-                  <span className="absolute top-2 right-2 bg-jenga-orange text-white text-xs px-2 py-0.5 rounded-full">
+                  <span className="absolute top-2 right-2 bg-jenga-orange text-white text-xs px-2 py-0.5 rounded-full animate-pulse">
                     {journalCount}
                   </span>
                 )}
@@ -151,12 +157,14 @@ const Profile = () => {
             <Link to="/pinned">
               <Button
                 variant="outline"
-                className="w-full h-auto py-4 flex flex-col items-center border-border hover:bg-muted relative"
+                className="w-full h-auto py-5 flex flex-col items-center border-border hover:bg-muted relative group transition-all duration-200 hover:shadow-md"
               >
-                <Pin className="w-6 h-6 mb-2 text-primary" />
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-rose-500 to-pink-500 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform duration-200 shadow-lg">
+                  <Pin className="w-6 h-6 text-white" />
+                </div>
                 <span className="font-semibold text-sm">Pinned Items</span>
                 {totalPinned > 0 && (
-                  <span className="absolute top-2 right-2 bg-jenga-orange text-white text-xs px-2 py-0.5 rounded-full">
+                  <span className="absolute top-2 right-2 bg-jenga-orange text-white text-xs px-2 py-0.5 rounded-full animate-pulse">
                     {totalPinned}
                   </span>
                 )}
