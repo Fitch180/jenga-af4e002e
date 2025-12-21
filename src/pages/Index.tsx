@@ -73,9 +73,9 @@ const Index = () => {
                           e.stopPropagation();
                           toggleMerchantPin(merchant.id);
                         }}
-                        className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-primary flex items-center justify-center shadow-md hover:bg-primary/80 transition-colors"
+                        className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-jenga-orange flex items-center justify-center shadow-md hover:bg-jenga-orange/80 transition-colors"
                       >
-                        <Pin className="w-3 h-3 text-primary-foreground fill-primary-foreground" />
+                        <Pin className="w-3 h-3 text-white fill-white" />
                       </button>
                     </div>
                     <p 
@@ -138,9 +138,9 @@ const Index = () => {
                           e.stopPropagation();
                           toggleProductPin(product.id);
                         }}
-                        className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-primary flex items-center justify-center shadow-md hover:bg-primary/80 transition-colors"
+                        className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-jenga-orange flex items-center justify-center shadow-md hover:bg-jenga-orange/80 transition-colors"
                       >
-                        <Pin className="w-3 h-3 text-primary-foreground fill-primary-foreground" />
+                        <Pin className="w-3 h-3 text-white fill-white" />
                       </button>
                     </div>
                     <p 
