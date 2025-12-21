@@ -117,7 +117,7 @@ const PinnedItems = () => {
                             className="flex items-center gap-4 flex-1 p-4"
                             onClick={() => navigate(`/merchant/${merchant.id}`)}
                           >
-                            <div className="w-16 h-16 rounded-full overflow-hidden bg-muted flex-shrink-0 ring-2 ring-primary">
+                            <div className="w-16 h-16 rounded-full overflow-hidden bg-muted flex-shrink-0 ring-2 ring-jenga-orange">
                               <img
                                 src={merchant.image}
                                 alt={merchant.name}
@@ -204,7 +204,7 @@ const PinnedItems = () => {
                             className="flex items-center gap-4 flex-1 p-4"
                             onClick={() => navigate(`/product/${product.id}`)}
                           >
-                            <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0 ring-2 ring-primary">
+                            <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0 ring-2 ring-jenga-orange">
                               <img
                                 src={product.image}
                                 alt={product.name}
