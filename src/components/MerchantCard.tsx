@@ -31,13 +31,9 @@ export const MerchantCard = ({ name, location, image, isPinned, onPin }: Merchan
           e.stopPropagation();
           onPin?.();
         }}
-        className={`absolute top-3 right-3 z-10 w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
-          isPinned 
-            ? 'bg-jenga-orange hover:bg-jenga-orange/90' 
-            : 'bg-foreground/90 hover:bg-foreground'
-        }`}
+        className="absolute top-3 right-3 z-10 w-8 h-8 bg-foreground/90 rounded-full flex items-center justify-center hover:bg-foreground transition-colors"
       >
-        <Pin className={`w-4 h-4 ${isPinned ? 'fill-white text-white' : 'text-background'}`} />
+        <Pin className={`w-4 h-4 ${isPinned ? 'fill-jenga-orange text-jenga-orange' : 'text-background'}`} />
       </button>
       
       <div className="flex items-center p-4 gap-4">
