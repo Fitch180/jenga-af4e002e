@@ -63,9 +63,13 @@ export const ProductCard = ({ id, name, price, merchant, image, isPinned, onPin,
             e.stopPropagation();
             onPin?.();
           }}
-          className="w-8 h-8 bg-foreground/90 rounded-full flex items-center justify-center hover:bg-foreground transition-colors"
+          className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+            isPinned 
+              ? 'bg-jenga-orange hover:bg-jenga-orange/90' 
+              : 'bg-foreground/90 hover:bg-foreground'
+          }`}
         >
-          <Pin className={`w-4 h-4 ${isPinned ? 'fill-jenga-orange text-jenga-orange' : 'text-background'}`} />
+          <Pin className={`w-4 h-4 ${isPinned ? 'fill-white text-white' : 'text-background'}`} />
         </button>
         {itemType === "service" ? (
           <Button
