@@ -259,7 +259,9 @@ const ProductFormDialog = ({ open, onOpenChange, product, onSave }: ProductFormD
               Cancel
             </Button>
             <Button type="submit" className="bg-accent hover:bg-accent/90 text-accent-foreground">
-              {product ? "Update Product" : "Add Product"}
+              {product 
+                ? `Update ${formData.itemType === "service" ? "Service" : "Product"}` 
+                : `Add ${formData.itemType === "service" ? "Service" : "Product"}`}
             </Button>
           </DialogFooter>
         </form>
