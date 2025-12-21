@@ -16,6 +16,8 @@ interface ProductVariant {
   priceModifier: string;
 }
 
+type ItemType = "product" | "service";
+
 interface Product {
   id: string;
   name: string;
@@ -24,6 +26,7 @@ interface Product {
   description?: string;
   image: string;
   variants?: ProductVariant[];
+  itemType?: ItemType;
 }
 
 interface ProductFormDialogProps {
@@ -40,6 +43,7 @@ const ProductFormDialog = ({ open, onOpenChange, product, onSave }: ProductFormD
     category: "",
     description: "",
     image: "",
+    itemType: "product" as ItemType,
   });
   const [variants, setVariants] = useState<ProductVariant[]>([]);
   const [newVariant, setNewVariant] = useState({ name: "", value: "", priceModifier: "" });
@@ -52,10 +56,11 @@ const ProductFormDialog = ({ open, onOpenChange, product, onSave }: ProductFormD
         category: product.category,
         description: product.description || "",
         image: product.image,
+        itemType: product.itemType || "product",
       });
       setVariants(product.variants || []);
     } else {
-      setFormData({ name: "", price: "", category: "", description: "", image: "" });
+      setFormData({ name: "", price: "", category: "", description: "", image: "", itemType: "product" });
       setVariants([]);
     }
   }, [product, open]);
@@ -87,6 +92,7 @@ const ProductFormDialog = ({ open, onOpenChange, product, onSave }: ProductFormD
       description: formData.description,
       image: formData.image || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=400&fit=crop",
       variants: variants.length > 0 ? variants : undefined,
+      itemType: formData.itemType,
     });
     onOpenChange(false);
   };
@@ -98,19 +104,47 @@ const ProductFormDialog = ({ open, onOpenChange, product, onSave }: ProductFormD
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-foreground">
-            {product ? "Edit Product" : "Add New Product"}
+            {product ? `Edit ${formData.itemType === "service" ? "Service" : "Product"}` : "Add New Item"}
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Item Type Selection */}
+          <div className="space-y-2">
+            <Label>Item Type *</Label>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant={formData.itemType === "product" ? "default" : "outline"}
+                className={formData.itemType === "product" ? "bg-primary" : ""}
+                onClick={() => setFormData({ ...formData, itemType: "product" })}
+              >
+                Product
+              </Button>
+              <Button
+                type="button"
+                variant={formData.itemType === "service" ? "default" : "outline"}
+                className={formData.itemType === "service" ? "bg-jenga-orange hover:bg-jenga-orange/90" : ""}
+                onClick={() => setFormData({ ...formData, itemType: "service" })}
+              >
+                Service
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {formData.itemType === "product" 
+                ? "Products can be added to cart and purchased directly" 
+                : "Services require customers to request a quotation"}
+            </p>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Product Name *</Label>
+              <Label htmlFor="name">{formData.itemType === "service" ? "Service" : "Product"} Name *</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Enter product name"
+                placeholder={formData.itemType === "service" ? "Enter service name" : "Enter product name"}
                 required
               />
             </div>

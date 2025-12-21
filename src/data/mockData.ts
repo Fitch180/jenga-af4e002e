@@ -16,6 +16,16 @@ export const CATEGORIES = [
   "REPAIR",
 ];
 
+// Service-oriented categories (merchants offering services, not products)
+export const SERVICE_CATEGORIES = [
+  "ARCHITECTS",
+  "ENGINEERS",
+  "CONTRACTORS",
+  "LANDSCAPING",
+  "PLUMBERS",
+  "PAINTERS",
+];
+
 export const MERCHANTS = [
   { id: 1, name: "Dar Ceramica Center", location: "Mikocheni", category: "TILES", image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=400&fit=crop" },
   { id: 2, name: "ABC Emporio Tiles Tanzania", location: "Industrial Way Rd", category: "TILES", image: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=400&h=400&fit=crop" },
@@ -144,21 +154,21 @@ export const PRODUCTS = [
   { id: "77", merchantId: 13, name: "Foundation Materials", merchant: "BuildPro", price: "350,000 Tsh", category: "CONTRACTORS", image: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&h=400&fit=crop" },
   { id: "78", merchantId: 13, name: "Building Blocks", merchant: "BuildPro", price: "450 Tsh", category: "BUILDING", image: "https://images.unsplash.com/photo-1581094271901-8022df4466f9?w=400&h=400&fit=crop" },
   
-  // ArchDesign Studio products (id: 14)
-  { id: "79", merchantId: 14, name: "Architectural Plans", merchant: "ArchDesign", price: "2,500,000 Tsh", category: "ARCHITECTS", image: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&h=400&fit=crop" },
-  { id: "80", merchantId: 14, name: "3D Rendering Service", merchant: "ArchDesign", price: "1,200,000 Tsh", category: "ARCHITECTS", image: "https://images.unsplash.com/photo-1581094271901-8022df4466f9?w=400&h=400&fit=crop" },
-  { id: "81", merchantId: 14, name: "Interior Design Package", merchant: "ArchDesign", price: "3,500,000 Tsh", category: "ARCHITECTS", image: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&h=400&fit=crop" },
-  { id: "82", merchantId: 14, name: "Consultation Service", merchant: "ArchDesign", price: "500,000 Tsh", category: "ARCHITECTS", image: "https://images.unsplash.com/photo-1581094271901-8022df4466f9?w=400&h=400&fit=crop" },
-  { id: "83", merchantId: 14, name: "Renovation Plans", merchant: "ArchDesign", price: "1,800,000 Tsh", category: "ARCHITECTS", image: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&h=400&fit=crop" },
-  { id: "84", merchantId: 14, name: "Landscape Design", merchant: "ArchDesign", price: "2,200,000 Tsh", category: "ARCHITECTS", image: "https://images.unsplash.com/photo-1581094271901-8022df4466f9?w=400&h=400&fit=crop" },
+  // ArchDesign Studio products (id: 14) - SERVICES
+  { id: "79", merchantId: 14, name: "Architectural Plans", merchant: "ArchDesign", price: "2,500,000 Tsh", category: "ARCHITECTS", image: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&h=400&fit=crop", itemType: "service" as const },
+  { id: "80", merchantId: 14, name: "3D Rendering Service", merchant: "ArchDesign", price: "1,200,000 Tsh", category: "ARCHITECTS", image: "https://images.unsplash.com/photo-1581094271901-8022df4466f9?w=400&h=400&fit=crop", itemType: "service" as const },
+  { id: "81", merchantId: 14, name: "Interior Design Package", merchant: "ArchDesign", price: "3,500,000 Tsh", category: "ARCHITECTS", image: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&h=400&fit=crop", itemType: "service" as const },
+  { id: "82", merchantId: 14, name: "Consultation Service", merchant: "ArchDesign", price: "500,000 Tsh", category: "ARCHITECTS", image: "https://images.unsplash.com/photo-1581094271901-8022df4466f9?w=400&h=400&fit=crop", itemType: "service" as const },
+  { id: "83", merchantId: 14, name: "Renovation Plans", merchant: "ArchDesign", price: "1,800,000 Tsh", category: "ARCHITECTS", image: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&h=400&fit=crop", itemType: "service" as const },
+  { id: "84", merchantId: 14, name: "Landscape Design", merchant: "ArchDesign", price: "2,200,000 Tsh", category: "ARCHITECTS", image: "https://images.unsplash.com/photo-1581094271901-8022df4466f9?w=400&h=400&fit=crop", itemType: "service" as const },
   
-  // Structural Engineers products (id: 15)
-  { id: "85", merchantId: 15, name: "Structural Analysis", merchant: "Structural Engineers", price: "1,500,000 Tsh", category: "ENGINEERS", image: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&h=400&fit=crop" },
-  { id: "86", merchantId: 15, name: "Foundation Design", merchant: "Structural Engineers", price: "2,000,000 Tsh", category: "ENGINEERS", image: "https://images.unsplash.com/photo-1581094271901-8022df4466f9?w=400&h=400&fit=crop" },
-  { id: "87", merchantId: 15, name: "Building Inspection", merchant: "Structural Engineers", price: "800,000 Tsh", category: "ENGINEERS", image: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&h=400&fit=crop" },
-  { id: "88", merchantId: 15, name: "Seismic Assessment", merchant: "Structural Engineers", price: "1,200,000 Tsh", category: "ENGINEERS", image: "https://images.unsplash.com/photo-1581094271901-8022df4466f9?w=400&h=400&fit=crop" },
-  { id: "89", merchantId: 15, name: "Load Calculations", merchant: "Structural Engineers", price: "650,000 Tsh", category: "ENGINEERS", image: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&h=400&fit=crop" },
-  { id: "90", merchantId: 15, name: "Steel Structure Design", merchant: "Structural Engineers", price: "2,800,000 Tsh", category: "ENGINEERS", image: "https://images.unsplash.com/photo-1581094271901-8022df4466f9?w=400&h=400&fit=crop" },
+  // Structural Engineers products (id: 15) - SERVICES
+  { id: "85", merchantId: 15, name: "Structural Analysis", merchant: "Structural Engineers", price: "1,500,000 Tsh", category: "ENGINEERS", image: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&h=400&fit=crop", itemType: "service" as const },
+  { id: "86", merchantId: 15, name: "Foundation Design", merchant: "Structural Engineers", price: "2,000,000 Tsh", category: "ENGINEERS", image: "https://images.unsplash.com/photo-1581094271901-8022df4466f9?w=400&h=400&fit=crop", itemType: "service" as const },
+  { id: "87", merchantId: 15, name: "Building Inspection", merchant: "Structural Engineers", price: "800,000 Tsh", category: "ENGINEERS", image: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&h=400&fit=crop", itemType: "service" as const },
+  { id: "88", merchantId: 15, name: "Seismic Assessment", merchant: "Structural Engineers", price: "1,200,000 Tsh", category: "ENGINEERS", image: "https://images.unsplash.com/photo-1581094271901-8022df4466f9?w=400&h=400&fit=crop", itemType: "service" as const },
+  { id: "89", merchantId: 15, name: "Load Calculations", merchant: "Structural Engineers", price: "650,000 Tsh", category: "ENGINEERS", image: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=400&h=400&fit=crop", itemType: "service" as const },
+  { id: "90", merchantId: 15, name: "Steel Structure Design", merchant: "Structural Engineers", price: "2,800,000 Tsh", category: "ENGINEERS", image: "https://images.unsplash.com/photo-1581094271901-8022df4466f9?w=400&h=400&fit=crop", itemType: "service" as const },
   
   // Luxury Furnishings products (id: 16)
   { id: "91", merchantId: 16, name: "Executive Office Desk", merchant: "Luxury Furnishings", price: "1,200,000 Tsh", category: "FURNITURE", image: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=400&h=400&fit=crop" },
