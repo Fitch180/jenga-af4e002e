@@ -21,6 +21,7 @@ import PinnedItems from "./pages/PinnedItems";
 import MerchantDashboard from "./pages/MerchantDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import Chat from "./pages/Chat";
+import Services from "./pages/Services";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -48,6 +49,7 @@ const App = () => (
                 <Route path="/journal" element={<Journal />} />
                 <Route path="/pinned" element={<PinnedItems />} />
                 <Route path="/chat" element={<Chat />} />
+                <Route path="/services" element={<Services />} />
                 <Route path="/merchant-dashboard" element={<MerchantDashboard />} />
                 <Route path="/admin-dashboard" element={<AdminDashboard />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
