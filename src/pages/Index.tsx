@@ -55,11 +55,11 @@ const Index = () => {
                 {pinnedMerchantsList.map((merchant) => (
                   <div 
                     key={merchant.id} 
-                    className="flex-shrink-0 w-24"
+                    className="flex-shrink-0 w-24 animate-scale-in"
                   >
                     <div className="relative mx-auto mb-2">
                       <div 
-                        className="w-20 h-20 rounded-full overflow-hidden bg-muted ring-2 ring-primary cursor-pointer"
+                        className="w-20 h-20 rounded-full overflow-hidden bg-muted border-2 border-jenga-orange cursor-pointer transition-transform duration-200 hover:scale-105"
                         onClick={() => navigate(`/merchant/${merchant.id}`)}
                       >
                         <img
@@ -73,7 +73,7 @@ const Index = () => {
                           e.stopPropagation();
                           toggleMerchantPin(merchant.id);
                         }}
-                        className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-jenga-orange flex items-center justify-center shadow-md hover:bg-jenga-orange/80 transition-colors"
+                        className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-jenga-orange flex items-center justify-center shadow-md hover:bg-jenga-orange/80 transition-all duration-200 hover:scale-110 active:scale-95"
                       >
                         <Pin className="w-3 h-3 text-white fill-white" />
                       </button>
@@ -120,11 +120,11 @@ const Index = () => {
                 {pinnedProductsList.map((product) => (
                   <div 
                     key={product.id} 
-                    className="flex-shrink-0 w-24"
+                    className="flex-shrink-0 w-24 animate-scale-in"
                   >
                     <div className="relative mx-auto mb-2">
                       <div 
-                        className="w-20 h-20 rounded-full overflow-hidden bg-muted ring-2 ring-primary cursor-pointer"
+                        className="w-20 h-20 rounded-full overflow-hidden bg-muted border-2 border-jenga-orange cursor-pointer transition-transform duration-200 hover:scale-105"
                         onClick={() => navigate(`/product/${product.id}`)}
                       >
                         <img
@@ -138,7 +138,7 @@ const Index = () => {
                           e.stopPropagation();
                           toggleProductPin(product.id);
                         }}
-                        className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-jenga-orange flex items-center justify-center shadow-md hover:bg-jenga-orange/80 transition-colors"
+                        className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-jenga-orange flex items-center justify-center shadow-md hover:bg-jenga-orange/80 transition-all duration-200 hover:scale-110 active:scale-95"
                       >
                         <Pin className="w-3 h-3 text-white fill-white" />
                       </button>
