@@ -1,10 +1,12 @@
-import { User, Mail, Settings, Store, Clock, FileText, LogOut, Pin, NotebookPen } from "lucide-react";
+import { User, Mail, Settings, Store, Clock, FileText, LogOut, Pin, NotebookPen, LayoutDashboard } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { BottomNav } from "@/components/BottomNav";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import { useEffect, useState } from "react";
 import { usePinned } from "@/contexts/PinnedContext";
 import { useOrders } from "@/contexts/OrderContext";
@@ -13,12 +15,16 @@ import { useQuotations } from "@/contexts/QuotationContext";
 const Profile = () => {
   const navigate = useNavigate();
   const { user, loading, signOut } = useAuth();
+  const { isMerchant, merchantProfile } = useUserRole();
   const { pinnedMerchants, pinnedProducts } = usePinned();
   const { orders } = useOrders();
   const { getUserQuotations } = useQuotations();
   const totalPinned = pinnedMerchants.length + pinnedProducts.length;
   const ordersCount = orders.length;
   const quotationsCount = getUserQuotations().length;
+  
+  // Mock notification count for merchant dashboard
+  const dashboardNotifications = 3;
   
   const [journalCount, setJournalCount] = useState(0);
   
@@ -74,19 +80,34 @@ const Profile = () => {
           </div>
         </Card>
 
-        {/* Quick Access Section - Dashboards */}
+        {/* Merchant Dashboard Button */}
+        {isMerchant && (
+          <Link to="/merchant-dashboard">
+            <Button
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-auto py-4 flex items-center justify-center gap-3 relative"
+            >
+              <div className="relative">
+                <LayoutDashboard className="w-6 h-6" />
+                {dashboardNotifications > 0 && (
+                  <Badge 
+                    className="absolute -top-2 -right-2 h-5 min-w-5 flex items-center justify-center p-0 text-xs bg-destructive text-destructive-foreground"
+                  >
+                    {dashboardNotifications}
+                  </Badge>
+                )}
+              </div>
+              <span className="font-semibold">Dashboard</span>
+              {merchantProfile?.approval_status === "pending" && (
+                <Badge variant="secondary" className="ml-2">Pending Approval</Badge>
+              )}
+            </Button>
+          </Link>
+        )}
+
+        {/* Quick Access Section - Admin Only */}
         <Card className="p-6">
           <h3 className="text-lg font-semibold text-foreground mb-4">Quick Access</h3>
-          <div className="grid grid-cols-2 gap-3">
-            <Link to="/merchant-dashboard">
-              <Button
-                className="w-full bg-accent hover:bg-accent/90 text-accent-foreground h-auto py-4 flex flex-col items-center"
-              >
-                <Store className="w-6 h-6 mb-2" />
-                <span className="font-semibold text-sm">Merchant Dashboard</span>
-              </Button>
-            </Link>
-            
+          <div className="grid grid-cols-1 gap-3">
             <Link to="/admin-dashboard">
               <Button
                 variant="outline"
