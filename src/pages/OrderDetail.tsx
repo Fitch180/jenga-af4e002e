@@ -191,11 +191,11 @@ const OrderDetail = () => {
         </Card>
 
         <Button
-          onClick={() => navigate("/")}
+          onClick={() => navigate(-1)}
           variant="outline"
           className="w-full"
         >
-          Continue Shopping
+          Go Back
         </Button>
       </main>
     </div>

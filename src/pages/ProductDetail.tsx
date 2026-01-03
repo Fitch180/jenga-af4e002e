@@ -27,7 +27,7 @@ export default function ProductDetail() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-2">Product not found</h2>
-          <Button onClick={() => navigate("/")}>Go Back</Button>
+          <Button onClick={() => navigate(-1)}>Go Back</Button>
         </div>
       </div>
     );
