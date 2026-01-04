@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 
+const SUPER_ADMIN_EMAIL = "benjamin.jayd90@gmail.com";
+
 interface MerchantProfile {
   id: string;
   user_id: string;
@@ -16,18 +18,24 @@ export const useUserRole = () => {
   const { user } = useAuth();
   const [isMerchant, setIsMerchant] = useState(false);
   const [isApprovedMerchant, setIsApprovedMerchant] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [merchantProfile, setMerchantProfile] = useState<MerchantProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkMerchantStatus = async () => {
+    const checkUserRoles = async () => {
       if (!user) {
         setIsMerchant(false);
         setIsApprovedMerchant(false);
+        setIsAdmin(false);
         setMerchantProfile(null);
         setLoading(false);
         return;
       }
+
+      // Check if user is super admin by email
+      const isSuperAdmin = user.email?.toLowerCase() === SUPER_ADMIN_EMAIL.toLowerCase();
+      setIsAdmin(isSuperAdmin);
 
       try {
         // Check if user has merchant role
@@ -55,14 +63,14 @@ export const useUserRole = () => {
           }
         }
       } catch (error) {
-        console.error("Error checking merchant status:", error);
+        console.error("Error checking user roles:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    checkMerchantStatus();
+    checkUserRoles();
   }, [user]);
 
-  return { isMerchant, isApprovedMerchant, merchantProfile, loading };
+  return { isMerchant, isApprovedMerchant, isAdmin, merchantProfile, loading };
 };
