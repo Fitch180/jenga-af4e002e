@@ -1,4 +1,4 @@
-import { Home, Package, MessageSquare, User, LayoutDashboard } from "lucide-react";
+import { Home, Package, User, LayoutDashboard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MiniCart } from "@/components/MiniCart";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -14,12 +14,11 @@ export const BottomNav = ({ activeTab, onTabChange }: BottomNavProps) => {
   const { isMerchant } = useUserRole();
   const navigate = useNavigate();
 
-  const tabs = [
+  // Base tabs for all users (no chat - moved to profile)
+  const baseTabs = [
     { id: "merchants", label: "Merchants", icon: Home },
     { id: "products", label: "Products", icon: Package },
     { id: "cart", label: "Cart", icon: null }, // Cart uses MiniCart component
-    { id: "notifications", label: "Chat", icon: MessageSquare },
-    { id: "profile", label: "Profile", icon: User },
   ];
 
   // Mock notification count for merchant dashboard
@@ -28,7 +27,7 @@ export const BottomNav = ({ activeTab, onTabChange }: BottomNavProps) => {
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-50">
       <div className="flex justify-around items-center max-w-screen-xl mx-auto">
-        {tabs.map((tab) => {
+        {baseTabs.map((tab) => {
           if (tab.id === "cart") {
             return (
               <MiniCart 
@@ -59,7 +58,7 @@ export const BottomNav = ({ activeTab, onTabChange }: BottomNavProps) => {
           );
         })}
 
-        {/* Dashboard button for merchants */}
+        {/* Dashboard button for merchants only (3rd position after Products) */}
         {isMerchant && (
           <button
             onClick={() => navigate("/merchant-dashboard")}
@@ -78,6 +77,18 @@ export const BottomNav = ({ activeTab, onTabChange }: BottomNavProps) => {
             <span className="text-xs font-medium">Dashboard</span>
           </button>
         )}
+
+        {/* Profile tab - always last */}
+        <button
+          onClick={() => onTabChange("profile")}
+          className={cn(
+            "flex flex-col items-center justify-center py-3 px-4 flex-1 transition-colors relative",
+            activeTab === "profile" ? "text-primary" : "text-muted-foreground"
+          )}
+        >
+          <User className="w-6 h-6 mb-1" />
+          <span className="text-xs font-medium">Profile</span>
+        </button>
       </div>
     </nav>
   );

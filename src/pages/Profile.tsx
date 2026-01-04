@@ -1,6 +1,5 @@
-import { User, Mail, Settings, Store, Clock, FileText, LogOut, Pin, NotebookPen, LayoutDashboard } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { User, Mail, Settings, Clock, FileText, LogOut, Pin, NotebookPen, LayoutDashboard, MessageSquare } from "lucide-react";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BottomNav } from "@/components/BottomNav";
@@ -15,7 +14,7 @@ import { useQuotations } from "@/contexts/QuotationContext";
 const Profile = () => {
   const navigate = useNavigate();
   const { user, loading, signOut } = useAuth();
-  const { isMerchant, merchantProfile } = useUserRole();
+  const { isMerchant, isAdmin, merchantProfile } = useUserRole();
   const { pinnedMerchants, pinnedProducts } = usePinned();
   const { orders } = useOrders();
   const { getUserQuotations } = useQuotations();
@@ -80,7 +79,18 @@ const Profile = () => {
           </div>
         </Card>
 
-        {/* Merchant Dashboard Button */}
+        {/* Chat Button - available for all users */}
+        <Link to="/notifications">
+          <Button
+            variant="outline"
+            className="w-full h-auto py-4 flex items-center justify-center gap-3 border-primary text-primary hover:bg-primary/10"
+          >
+            <MessageSquare className="w-6 h-6" />
+            <span className="font-semibold">Chat</span>
+          </Button>
+        </Link>
+
+        {/* Merchant Dashboard Button - only for merchants */}
         {isMerchant && (
           <Link to="/merchant-dashboard">
             <Button
@@ -96,7 +106,7 @@ const Profile = () => {
                   </Badge>
                 )}
               </div>
-              <span className="font-semibold">Dashboard</span>
+              <span className="font-semibold">Merchant Dashboard</span>
               {merchantProfile?.approval_status === "pending" && (
                 <Badge variant="secondary" className="ml-2">Pending Approval</Badge>
               )}
@@ -104,21 +114,23 @@ const Profile = () => {
           </Link>
         )}
 
-        {/* Quick Access Section - Admin Only */}
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold text-foreground mb-4">Quick Access</h3>
-          <div className="grid grid-cols-1 gap-3">
-            <Link to="/admin-dashboard">
-              <Button
-                variant="outline"
-                className="w-full h-auto py-4 flex flex-col items-center border-accent text-accent hover:bg-accent/10"
-              >
-                <Settings className="w-6 h-6 mb-2" />
-                <span className="font-semibold text-sm">Admin Dashboard</span>
-              </Button>
-            </Link>
-          </div>
-        </Card>
+        {/* Admin Dashboard - only for super admin */}
+        {isAdmin && (
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold text-foreground mb-4">Admin Access</h3>
+            <div className="grid grid-cols-1 gap-3">
+              <Link to="/admin-dashboard">
+                <Button
+                  variant="outline"
+                  className="w-full h-auto py-4 flex flex-col items-center border-accent text-accent hover:bg-accent/10"
+                >
+                  <Settings className="w-6 h-6 mb-2" />
+                  <span className="font-semibold text-sm">Admin Dashboard</span>
+                </Button>
+              </Link>
+            </div>
+          </Card>
+        )}
 
         {/* My Items Section */}
         <Card className="p-6">
