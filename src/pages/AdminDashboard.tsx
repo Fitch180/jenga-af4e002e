@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Users, Store, Package, TrendingUp, Shield, Settings, Check, X, Eye } from "lucide-react";
+import { ArrowLeft, Users, Store, Package, TrendingUp, Shield, Settings, Check, X, Eye, UserCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,6 +15,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface MerchantProfile {
   id: string;
@@ -29,8 +36,21 @@ interface MerchantProfile {
 }
 
 interface Profile {
+  id: string;
+  user_id: string;
   first_name: string;
   last_name: string | null;
+  created_at: string;
+}
+
+interface UserRole {
+  id: string;
+  user_id: string;
+  role: "admin" | "merchant" | "user";
+}
+
+interface UserWithRole extends Profile {
+  roles: UserRole[];
 }
 
 interface MerchantWithProfile extends MerchantProfile {
@@ -43,23 +63,62 @@ const AdminDashboard = () => {
 
   const [pendingMerchants, setPendingMerchants] = useState<MerchantWithProfile[]>([]);
   const [allMerchants, setAllMerchants] = useState<MerchantWithProfile[]>([]);
+  const [allUsers, setAllUsers] = useState<UserWithRole[]>([]);
   const [loading, setLoading] = useState(true);
+  const [usersLoading, setUsersLoading] = useState(true);
   const [selectedMerchant, setSelectedMerchant] = useState<MerchantWithProfile | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserWithRole | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
 
   const [stats, setStats] = useState({
     totalMerchants: MERCHANTS.length,
     totalProducts: PRODUCTS.length,
-    totalUsers: 156,
+    totalUsers: 0,
     totalRevenue: "45,680,000",
     pendingApprovals: 0,
   });
 
-  const [recentUsers] = useState([
-    { id: 1, name: "John Doe", email: "john@example.com", joined: "2025-01-15" },
-    { id: 2, name: "Jane Smith", email: "jane@example.com", joined: "2025-01-14" },
-    { id: 3, name: "Mike Johnson", email: "mike@example.com", joined: "2025-01-13" },
-  ]);
+  const fetchUsers = async () => {
+    setUsersLoading(true);
+    try {
+      // Fetch all profiles
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (profilesError) throw profilesError;
+
+      // Fetch all user roles
+      const { data: roles, error: rolesError } = await supabase
+        .from("user_roles")
+        .select("*");
+
+      if (rolesError) throw rolesError;
+
+      // Map roles to users
+      const usersWithRoles: UserWithRole[] = (profiles || []).map((profile) => ({
+        ...profile,
+        roles: (roles || []).filter((role) => role.user_id === profile.user_id),
+      }));
+
+      setAllUsers(usersWithRoles);
+      setStats((prev) => ({
+        ...prev,
+        totalUsers: usersWithRoles.length,
+      }));
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch users data.",
+        variant: "destructive",
+      });
+    } finally {
+      setUsersLoading(false);
+    }
+  };
 
   const fetchMerchants = async () => {
     setLoading(true);
@@ -77,9 +136,9 @@ const AdminDashboard = () => {
       for (const merchant of merchants || []) {
         const { data: profile } = await supabase
           .from("profiles")
-          .select("first_name, last_name")
+          .select("*")
           .eq("user_id", merchant.user_id)
-          .single();
+          .maybeSingle();
 
         merchantsWithProfiles.push({
           ...merchant,
@@ -93,6 +152,7 @@ const AdminDashboard = () => {
       setStats(prev => ({
         ...prev,
         pendingApprovals: pending.length,
+        totalMerchants: merchantsWithProfiles.length,
       }));
     } catch (error) {
       console.error("Error fetching merchants:", error);
@@ -108,6 +168,7 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     fetchMerchants();
+    fetchUsers();
   }, []);
 
   const handleApprove = async (merchantId: string) => {
@@ -157,6 +218,67 @@ const AdminDashboard = () => {
       toast({
         title: "Error",
         description: "Failed to reject merchant.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleAddRole = async (userId: string, role: "admin" | "merchant" | "user") => {
+    try {
+      const { error } = await supabase
+        .from("user_roles")
+        .insert({ user_id: userId, role });
+
+      if (error) {
+        if (error.code === "23505") {
+          toast({
+            title: "Role Exists",
+            description: "This user already has this role.",
+            variant: "destructive",
+          });
+          return;
+        }
+        throw error;
+      }
+
+      toast({
+        title: "Role Added",
+        description: `Successfully added ${role} role.`,
+      });
+
+      fetchUsers();
+      setIsUserDialogOpen(false);
+    } catch (error) {
+      console.error("Error adding role:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add role.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRemoveRole = async (roleId: string) => {
+    try {
+      const { error } = await supabase
+        .from("user_roles")
+        .delete()
+        .eq("id", roleId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Role Removed",
+        description: "Successfully removed role.",
+      });
+
+      fetchUsers();
+      setIsUserDialogOpen(false);
+    } catch (error) {
+      console.error("Error removing role:", error);
+      toast({
+        title: "Error",
+        description: "Failed to remove role.",
         variant: "destructive",
       });
     }
@@ -366,23 +488,59 @@ const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="users" className="space-y-4 mt-6">
-            <h2 className="text-xl font-bold text-foreground">Recent Users</h2>
-            <div className="space-y-3">
-              {recentUsers.map((user) => (
-                <Card key={user.id} className="p-4">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="font-semibold text-foreground">{user.name}</p>
-                      <p className="text-sm text-muted-foreground">{user.email}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-muted-foreground">Joined: {user.joined}</p>
-                      <Badge variant="secondary">Active</Badge>
-                    </div>
-                  </div>
-                </Card>
-              ))}
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold text-foreground">All Users ({allUsers.length})</h2>
             </div>
+            {usersLoading ? (
+              <p className="text-muted-foreground">Loading...</p>
+            ) : allUsers.length === 0 ? (
+              <Card className="p-4">
+                <p className="text-muted-foreground text-center">No users found</p>
+              </Card>
+            ) : (
+              <div className="space-y-3">
+                {allUsers.map((user) => (
+                  <Card key={user.id} className="p-4">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="font-semibold text-foreground">
+                          {user.first_name} {user.last_name || ""}
+                        </p>
+                        <div className="flex gap-1 mt-1">
+                          {user.roles.length === 0 ? (
+                            <Badge variant="outline">User</Badge>
+                          ) : (
+                            user.roles.map((role) => (
+                              <Badge
+                                key={role.id}
+                                variant={role.role === "admin" ? "default" : role.role === "merchant" ? "secondary" : "outline"}
+                              >
+                                {role.role.charAt(0).toUpperCase() + role.role.slice(1)}
+                              </Badge>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm text-muted-foreground">
+                          Joined: {new Date(user.created_at).toLocaleDateString()}
+                        </p>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setIsUserDialogOpen(true);
+                          }}
+                        >
+                          <UserCog className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="products" className="space-y-4 mt-6">
@@ -521,6 +679,78 @@ const AdminDashboard = () => {
                   </Button>
                 </div>
               )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* User Management Dialog */}
+      <Dialog open={isUserDialogOpen} onOpenChange={setIsUserDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Manage User</DialogTitle>
+            <DialogDescription>
+              View and manage user roles
+            </DialogDescription>
+          </DialogHeader>
+          {selectedUser && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <div>
+                  <span className="text-sm text-muted-foreground">Name</span>
+                  <p className="font-medium">
+                    {selectedUser.first_name} {selectedUser.last_name || ""}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-sm text-muted-foreground">Joined</span>
+                  <p className="font-medium">
+                    {new Date(selectedUser.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-sm text-muted-foreground">Current Roles</span>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {selectedUser.roles.length === 0 ? (
+                      <Badge variant="outline">No special roles</Badge>
+                    ) : (
+                      selectedUser.roles.map((role) => (
+                        <div key={role.id} className="flex items-center gap-1">
+                          <Badge
+                            variant={role.role === "admin" ? "default" : role.role === "merchant" ? "secondary" : "outline"}
+                          >
+                            {role.role.charAt(0).toUpperCase() + role.role.slice(1)}
+                          </Badge>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                            onClick={() => handleRemoveRole(role.id)}
+                          >
+                            <X className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 border-t">
+                <p className="text-sm text-muted-foreground mb-2">Add Role</p>
+                <div className="flex gap-2">
+                  <Select onValueChange={(value) => handleAddRole(selectedUser.user_id, value as "admin" | "merchant" | "user")}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select role to add" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="merchant">Merchant</SelectItem>
+                      <SelectItem value="user">User</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
           )}
         </DialogContent>
