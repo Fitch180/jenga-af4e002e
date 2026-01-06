@@ -9,31 +9,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { PRODUCTS } from "@/data/mockData";
 import { toast } from "sonner";
 import ProductFormDialog from "@/components/merchant/ProductFormDialog";
 import DeleteConfirmDialog from "@/components/merchant/DeleteConfirmDialog";
 import BulkUploadDialog from "@/components/merchant/BulkUploadDialog";
 import { useMerchantChat } from "@/hooks/useMerchantChat";
-
-interface ProductVariant {
-  id: string;
-  name: string;
-  value: string;
-  priceModifier: string;
-}
-
-interface Product {
-  id: string;
-  merchantId: number;
-  name: string;
-  merchant: string;
-  price: string;
-  category: string;
-  image: string;
-  description?: string;
-  variants?: ProductVariant[];
-}
+import { useProducts, Product, ProductFormData } from "@/hooks/useProducts";
+import { useUserRole } from "@/hooks/useUserRole";
 
 const mockQuotations = [
   { id: "QT-001", customer: "John Doe", items: "Ceramic Tiles x 50sqm", status: "pending", date: "2024-01-15" },
@@ -43,22 +25,47 @@ const mockQuotations = [
 
 const MerchantDashboard = () => {
   const navigate = useNavigate();
-  const merchantId = 1; // Mock merchant ID - will be from auth in production
-  const merchantUserId = "merchant-user-1"; // Mock merchant user ID
+  const { merchantProfile, isApprovedMerchant, loading: roleLoading } = useUserRole();
+  
+  const merchantId = 1; // For chat - will be updated when we integrate fully
+  const merchantUserId = merchantProfile?.user_id || "";
+
+  // Products hook - uses real database
+  const {
+    products,
+    loading: productsLoading,
+    addProduct,
+    updateProduct,
+    deleteProduct,
+  } = useProducts(merchantProfile?.id || null);
 
   // Shop profile state
   const [shopProfile, setShopProfile] = useState({
-    name: "Dar Ceramica Center",
-    description: "Premium ceramic tiles and flooring solutions for your home and business. We offer a wide range of high-quality tiles imported from Italy and Spain.",
+    name: merchantProfile?.business_name || "Your Business",
+    description: "Premium products and services for your needs.",
     profileImage: "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=400&h=400&fit=crop",
     backgroundImage: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&h=400&fit=crop",
-    location: "Kariakoo, Dar es Salaam",
-    phone: "+255 712 345 678",
-    email: "info@darceramica.co.tz",
-    website: "www.darceramica.co.tz",
+    location: "Location not set",
+    phone: "Phone not set",
+    email: "Email not set",
+    website: "",
     operatingHours: "Mon-Sat: 8:00 AM - 6:00 PM",
-    category: "Building Materials",
+    category: "General",
   });
+
+  // Update shop profile when merchant profile loads
+  useEffect(() => {
+    if (merchantProfile) {
+      setShopProfile(prev => ({
+        ...prev,
+        name: merchantProfile.business_name,
+      }));
+      setEditedProfile(prev => ({
+        ...prev,
+        name: merchantProfile.business_name,
+      }));
+    }
+  }, [merchantProfile]);
 
   const [editedProfile, setEditedProfile] = useState(shopProfile);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -78,22 +85,14 @@ const MerchantDashboard = () => {
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const [products, setProducts] = useState<Product[]>(
-    PRODUCTS.filter((p) => p.merchantId === merchantId).map((p) => ({
-      ...p,
-      description: "",
-      variants: [],
-    }))
-  );
-
   const [productFormOpen, setProductFormOpen] = useState(false);
   const [bulkUploadOpen, setBulkUploadOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const [stats] = useState({
-    totalProducts: products.length,
     totalOrders: 24,
     revenue: "2,450,000",
     pendingOrders: 5,
@@ -120,58 +119,51 @@ const MerchantDashboard = () => {
     setDeleteDialogOpen(true);
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (deletingProductId) {
-      setProducts(products.filter((p) => p.id !== deletingProductId));
-      toast.success("Product deleted successfully");
+      await deleteProduct(deletingProductId);
       setDeleteDialogOpen(false);
       setDeletingProductId(null);
     }
   };
 
-  const handleSaveProduct = (productData: Omit<Product, "id" | "merchantId" | "merchant"> & { id?: string }) => {
-    if (productData.id) {
-      // Update existing product
-      setProducts(
-        products.map((p) =>
-          p.id === productData.id
-            ? { ...p, ...productData, merchantId, merchant: merchantName }
-            : p
-        )
-      );
-      toast.success("Product updated successfully");
-    } else {
-      // Add new product
-      const newProduct: Product = {
-        id: Date.now().toString(),
-        merchantId,
-        merchant: merchantName,
-        name: productData.name,
-        price: productData.price,
-        category: productData.category,
-        image: productData.image,
-        description: productData.description,
-        variants: productData.variants,
-      };
-      setProducts([...products, newProduct]);
-      toast.success("Product added successfully");
+  const handleSaveProduct = async (productData: ProductFormData, productId?: string): Promise<boolean> => {
+    setSaving(true);
+    try {
+      if (productId) {
+        return await updateProduct(productId, productData);
+      } else {
+        return await addProduct(productData);
+      }
+    } finally {
+      setSaving(false);
     }
   };
 
-  const handleBulkUpload = (uploadedProducts: any[]) => {
-    const newProducts = uploadedProducts.map((p, index) => ({
-      id: `bulk-${Date.now()}-${index}`,
-      merchantId,
-      merchant: merchantName,
-      name: p.name,
-      price: p.price,
-      category: p.category,
-      image: p.image,
-      description: p.description || "",
-      variants: [],
-    }));
-    setProducts([...products, ...newProducts]);
-    toast.success(`${newProducts.length} products uploaded successfully`);
+  const handleBulkUpload = async (uploadedProducts: any[]) => {
+    if (!merchantProfile?.id) {
+      toast.error("Merchant profile not found");
+      return;
+    }
+
+    let successCount = 0;
+    for (const p of uploadedProducts) {
+      const success = await addProduct({
+        name: p.name,
+        price: parseFloat(p.price.replace(/[^0-9.]/g, "")) || 0,
+        category: p.category,
+        description: p.description || undefined,
+        image_url: p.image || undefined,
+        stock: 0,
+        unit: "item",
+        is_active: true,
+      });
+      if (success) successCount++;
+    }
+    
+    if (successCount > 0) {
+      toast.success(`${successCount} products uploaded successfully`);
+    }
   };
 
   // Chat functions
@@ -296,7 +288,12 @@ const MerchantDashboard = () => {
             </div>
 
             <div className="space-y-3">
-              {products.length === 0 ? (
+              {productsLoading ? (
+                <Card className="p-8 text-center">
+                  <Package className="w-12 h-12 mx-auto text-muted-foreground mb-3 animate-pulse" />
+                  <p className="text-muted-foreground">Loading products...</p>
+                </Card>
+              ) : products.length === 0 ? (
                 <Card className="p-8 text-center">
                   <Package className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
                   <p className="text-muted-foreground">No products yet. Add your first product!</p>
@@ -306,7 +303,7 @@ const MerchantDashboard = () => {
                   <Card key={product.id} className="p-4">
                     <div className="flex gap-4">
                       <img
-                        src={product.image}
+                        src={product.image_url || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=400&fit=crop"}
                         alt={product.name}
                         className="w-24 h-24 object-cover rounded-lg"
                         onError={(e) => {
@@ -316,18 +313,19 @@ const MerchantDashboard = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start gap-2">
                           <div className="min-w-0">
-                            <h3 className="font-semibold text-foreground truncate">{product.name}</h3>
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-semibold text-foreground truncate">{product.name}</h3>
+                              {!product.is_active && (
+                                <Badge variant="secondary" className="text-xs">Inactive</Badge>
+                              )}
+                            </div>
                             <p className="text-sm text-muted-foreground">{product.category}</p>
-                            <p className="font-bold text-accent mt-1">{product.price}</p>
-                            {product.variants && product.variants.length > 0 && (
-                              <div className="flex flex-wrap gap-1 mt-2">
-                                {product.variants.map((v) => (
-                                  <Badge key={v.id} variant="outline" className="text-xs">
-                                    {v.name}: {v.value}
-                                  </Badge>
-                                ))}
-                              </div>
-                            )}
+                            <p className="font-bold text-accent mt-1">
+                              {product.price.toLocaleString()} Tsh
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Stock: {product.stock} {product.unit}
+                            </p>
                           </div>
                           <div className="flex gap-2 shrink-0">
                             <Button
@@ -816,6 +814,7 @@ const MerchantDashboard = () => {
         onOpenChange={setProductFormOpen}
         product={editingProduct}
         onSave={handleSaveProduct}
+        saving={saving}
       />
 
       <DeleteConfirmDialog

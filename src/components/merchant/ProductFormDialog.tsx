@@ -5,96 +5,79 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, X } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { CATEGORIES } from "@/data/mockData";
-import { Badge } from "@/components/ui/badge";
-
-interface ProductVariant {
-  id: string;
-  name: string;
-  value: string;
-  priceModifier: string;
-}
-
-type ItemType = "product" | "service";
-
-interface Product {
-  id: string;
-  name: string;
-  price: string;
-  category: string;
-  description?: string;
-  image: string;
-  variants?: ProductVariant[];
-  itemType?: ItemType;
-}
+import { Product, ProductFormData } from "@/hooks/useProducts";
 
 interface ProductFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   product?: Product | null;
-  onSave: (product: Omit<Product, "id"> & { id?: string }) => void;
+  onSave: (product: ProductFormData, productId?: string) => Promise<boolean>;
+  saving?: boolean;
 }
 
-const ProductFormDialog = ({ open, onOpenChange, product, onSave }: ProductFormDialogProps) => {
+const ProductFormDialog = ({ open, onOpenChange, product, onSave, saving }: ProductFormDialogProps) => {
   const [formData, setFormData] = useState({
     name: "",
     price: "",
     category: "",
     description: "",
-    image: "",
-    itemType: "product" as ItemType,
+    image_url: "",
+    stock: "",
+    unit: "item",
+    is_active: true,
   });
-  const [variants, setVariants] = useState<ProductVariant[]>([]);
-  const [newVariant, setNewVariant] = useState({ name: "", value: "", priceModifier: "" });
 
   useEffect(() => {
     if (product) {
       setFormData({
         name: product.name,
-        price: product.price.replace(" Tsh", "").replace(/,/g, ""),
+        price: product.price.toString(),
         category: product.category,
         description: product.description || "",
-        image: product.image,
-        itemType: product.itemType || "product",
+        image_url: product.image_url || "",
+        stock: product.stock.toString(),
+        unit: product.unit,
+        is_active: product.is_active,
       });
-      setVariants(product.variants || []);
     } else {
-      setFormData({ name: "", price: "", category: "", description: "", image: "", itemType: "product" });
-      setVariants([]);
+      setFormData({
+        name: "",
+        price: "",
+        category: "",
+        description: "",
+        image_url: "",
+        stock: "0",
+        unit: "item",
+        is_active: true,
+      });
     }
   }, [product, open]);
 
-  const handleAddVariant = () => {
-    if (newVariant.name && newVariant.value) {
-      setVariants([
-        ...variants,
-        { ...newVariant, id: Date.now().toString() },
-      ]);
-      setNewVariant({ name: "", value: "", priceModifier: "" });
-    }
-  };
-
-  const handleRemoveVariant = (id: string) => {
-    setVariants(variants.filter((v) => v.id !== id));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const priceNum = parseInt(formData.price.replace(/,/g, ""));
-    const formattedPrice = `${priceNum.toLocaleString()} Tsh`;
     
-    onSave({
-      ...(product?.id && { id: product.id }),
-      name: formData.name,
-      price: formattedPrice,
+    const priceNum = parseFloat(formData.price.replace(/,/g, ""));
+    if (isNaN(priceNum) || priceNum <= 0) {
+      return;
+    }
+
+    const productData: ProductFormData = {
+      name: formData.name.trim(),
+      price: priceNum,
       category: formData.category,
-      description: formData.description,
-      image: formData.image || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=400&fit=crop",
-      variants: variants.length > 0 ? variants : undefined,
-      itemType: formData.itemType,
-    });
-    onOpenChange(false);
+      description: formData.description.trim() || undefined,
+      image_url: formData.image_url.trim() || undefined,
+      stock: parseInt(formData.stock) || 0,
+      unit: formData.unit,
+      is_active: formData.is_active,
+    };
+    
+    const success = await onSave(productData, product?.id);
+    if (success) {
+      onOpenChange(false);
+    }
   };
 
   const categories = CATEGORIES.filter((c) => c !== "All");
@@ -104,48 +87,21 @@ const ProductFormDialog = ({ open, onOpenChange, product, onSave }: ProductFormD
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-foreground">
-            {product ? `Edit ${formData.itemType === "service" ? "Service" : "Product"}` : "Add New Item"}
+            {product ? "Edit Product" : "Add New Product"}
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Item Type Selection */}
-          <div className="space-y-2">
-            <Label>Item Type *</Label>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant={formData.itemType === "product" ? "default" : "outline"}
-                className={formData.itemType === "product" ? "bg-primary" : ""}
-                onClick={() => setFormData({ ...formData, itemType: "product" })}
-              >
-                Product
-              </Button>
-              <Button
-                type="button"
-                variant={formData.itemType === "service" ? "default" : "outline"}
-                className={formData.itemType === "service" ? "bg-jenga-orange hover:bg-jenga-orange/90" : ""}
-                onClick={() => setFormData({ ...formData, itemType: "service" })}
-              >
-                Service
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {formData.itemType === "product" 
-                ? "Products can be added to cart and purchased directly" 
-                : "Services require customers to request a quotation"}
-            </p>
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">{formData.itemType === "service" ? "Service" : "Product"} Name *</Label>
+              <Label htmlFor="name">Product Name *</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder={formData.itemType === "service" ? "Enter service name" : "Enter product name"}
+                placeholder="Enter product name"
                 required
+                maxLength={100}
               />
             </div>
 
@@ -153,6 +109,9 @@ const ProductFormDialog = ({ open, onOpenChange, product, onSave }: ProductFormD
               <Label htmlFor="price">Price (Tsh) *</Label>
               <Input
                 id="price"
+                type="number"
+                min="0"
+                step="0.01"
                 value={formData.price}
                 onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                 placeholder="e.g., 50000"
@@ -165,6 +124,7 @@ const ProductFormDialog = ({ open, onOpenChange, product, onSave }: ProductFormD
               <Select
                 value={formData.category}
                 onValueChange={(value) => setFormData({ ...formData, category: value })}
+                required
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select category" />
@@ -180,12 +140,49 @@ const ProductFormDialog = ({ open, onOpenChange, product, onSave }: ProductFormD
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="image">Image URL</Label>
+              <Label htmlFor="stock">Stock Quantity</Label>
               <Input
-                id="image"
-                value={formData.image}
-                onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                id="stock"
+                type="number"
+                min="0"
+                value={formData.stock}
+                onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                placeholder="e.g., 100"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="unit">Unit</Label>
+              <Select
+                value={formData.unit}
+                onValueChange={(value) => setFormData({ ...formData, unit: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select unit" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="item">Item</SelectItem>
+                  <SelectItem value="kg">Kilogram (kg)</SelectItem>
+                  <SelectItem value="g">Gram (g)</SelectItem>
+                  <SelectItem value="l">Liter (L)</SelectItem>
+                  <SelectItem value="ml">Milliliter (ml)</SelectItem>
+                  <SelectItem value="sqm">Square Meter (sqm)</SelectItem>
+                  <SelectItem value="m">Meter (m)</SelectItem>
+                  <SelectItem value="pack">Pack</SelectItem>
+                  <SelectItem value="box">Box</SelectItem>
+                  <SelectItem value="bag">Bag</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="image_url">Image URL</Label>
+              <Input
+                id="image_url"
+                value={formData.image_url}
+                onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
                 placeholder="https://..."
+                type="url"
               />
             </div>
           </div>
@@ -198,70 +195,34 @@ const ProductFormDialog = ({ open, onOpenChange, product, onSave }: ProductFormD
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Product description..."
               rows={3}
+              maxLength={1000}
             />
           </div>
 
-          {/* Variants Section */}
-          <div className="space-y-3 border-t pt-4">
-            <Label className="text-base font-semibold">Product Variants</Label>
-            
-            {variants.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-3">
-                {variants.map((variant) => (
-                  <Badge
-                    key={variant.id}
-                    variant="secondary"
-                    className="flex items-center gap-1 py-1"
-                  >
-                    <span>{variant.name}: {variant.value}</span>
-                    {variant.priceModifier && (
-                      <span className="text-muted-foreground">
-                        (+{variant.priceModifier} Tsh)
-                      </span>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveVariant(variant.id)}
-                      className="ml-1 hover:text-destructive"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
-              <Input
-                placeholder="Variant name (e.g., Size)"
-                value={newVariant.name}
-                onChange={(e) => setNewVariant({ ...newVariant, name: e.target.value })}
-              />
-              <Input
-                placeholder="Value (e.g., Large)"
-                value={newVariant.value}
-                onChange={(e) => setNewVariant({ ...newVariant, value: e.target.value })}
-              />
-              <Input
-                placeholder="Price modifier"
-                value={newVariant.priceModifier}
-                onChange={(e) => setNewVariant({ ...newVariant, priceModifier: e.target.value })}
-              />
-              <Button type="button" variant="outline" onClick={handleAddVariant}>
-                <Plus className="w-4 h-4 mr-1" />
-                Add
-              </Button>
+          <div className="flex items-center justify-between border-t pt-4">
+            <div className="space-y-0.5">
+              <Label htmlFor="is_active">Active</Label>
+              <p className="text-xs text-muted-foreground">
+                Active products are visible to customers
+              </p>
             </div>
+            <Switch
+              id="is_active"
+              checked={formData.is_active}
+              onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
+            />
           </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" className="bg-accent hover:bg-accent/90 text-accent-foreground">
-              {product 
-                ? `Update ${formData.itemType === "service" ? "Service" : "Product"}` 
-                : `Add ${formData.itemType === "service" ? "Service" : "Product"}`}
+            <Button 
+              type="submit" 
+              className="bg-accent hover:bg-accent/90 text-accent-foreground"
+              disabled={saving || !formData.name || !formData.price || !formData.category}
+            >
+              {saving ? "Saving..." : product ? "Update Product" : "Add Product"}
             </Button>
           </DialogFooter>
         </form>
