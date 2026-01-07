@@ -7,12 +7,14 @@ export interface Product {
   merchant_id: string;
   name: string;
   description: string | null;
-  price: number;
+  price: number | null;
   category: string;
   image_url: string | null;
+  image_urls: string[];
   stock: number;
   unit: string;
   is_active: boolean;
+  item_type: 'product' | 'service';
   created_at: string;
   updated_at: string;
 }
@@ -20,12 +22,14 @@ export interface Product {
 export interface ProductFormData {
   name: string;
   description?: string;
-  price: number;
+  price?: number | null;
   category: string;
   image_url?: string;
+  image_urls?: string[];
   stock?: number;
   unit?: string;
   is_active?: boolean;
+  item_type?: 'product' | 'service';
 }
 
 export const useProducts = (merchantProfileId: string | null) => {
@@ -48,7 +52,11 @@ export const useProducts = (merchantProfileId: string | null) => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setProducts(data || []);
+      setProducts((data || []).map(p => ({
+        ...p,
+        item_type: p.item_type as 'product' | 'service',
+        image_urls: p.image_urls || [],
+      })));
     } catch (error: any) {
       console.error("Error fetching products:", error);
       toast.error("Failed to load products");
@@ -72,12 +80,14 @@ export const useProducts = (merchantProfileId: string | null) => {
         merchant_id: merchantProfileId,
         name: productData.name,
         description: productData.description || null,
-        price: productData.price,
+        price: productData.price ?? null,
         category: productData.category,
         image_url: productData.image_url || null,
+        image_urls: productData.image_urls || [],
         stock: productData.stock ?? 0,
         unit: productData.unit || "item",
         is_active: productData.is_active ?? true,
+        item_type: productData.item_type || "product",
       });
 
       if (error) throw error;
@@ -105,9 +115,11 @@ export const useProducts = (merchantProfileId: string | null) => {
           price: productData.price,
           category: productData.category,
           image_url: productData.image_url,
+          image_urls: productData.image_urls,
           stock: productData.stock,
           unit: productData.unit,
           is_active: productData.is_active,
+          item_type: productData.item_type,
         })
         .eq("id", productId);
 

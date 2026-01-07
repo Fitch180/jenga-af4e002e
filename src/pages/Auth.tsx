@@ -41,6 +41,7 @@ const Auth = () => {
   const [businessRegistrationNumber, setBusinessRegistrationNumber] = useState("");
   const [countryRegistered, setCountryRegistered] = useState("");
   const [revenueAuthorityNumber, setRevenueAuthorityNumber] = useState("");
+  const [nationalIdNumber, setNationalIdNumber] = useState("");
 
   useEffect(() => {
     // Check if user is already logged in
@@ -119,6 +120,15 @@ const Auth = () => {
         setLoading(false);
         return;
       }
+      if (!nationalIdNumber.trim()) {
+        toast({
+          title: "Validation Error",
+          description: "National ID number is required.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
     }
 
     const redirectUrl = `${window.location.origin}/`;
@@ -179,6 +189,7 @@ const Auth = () => {
               business_registration_number: businessRegistrationNumber.trim() || null,
               country_registered: countryRegistered,
               revenue_authority_number: revenueAuthorityNumber.trim() || null,
+              national_id_number: nationalIdNumber.trim() || null,
               approval_status: "pending",
             });
 
@@ -213,6 +224,7 @@ const Auth = () => {
     setBusinessRegistrationNumber("");
     setCountryRegistered("");
     setRevenueAuthorityNumber("");
+    setNationalIdNumber("");
   };
 
   return (
@@ -357,6 +369,18 @@ const Auth = () => {
                         placeholder="e.g., TIN-123456"
                         value={revenueAuthorityNumber}
                         onChange={(e) => setRevenueAuthorityNumber(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="national-id">National ID Number *</Label>
+                      <Input
+                        id="national-id"
+                        type="text"
+                        placeholder="e.g., 19901234-12345-00001-23"
+                        value={nationalIdNumber}
+                        onChange={(e) => setNationalIdNumber(e.target.value)}
+                        required
                       />
                     </div>
                   </>
