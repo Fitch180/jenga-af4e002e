@@ -299,56 +299,74 @@ const MerchantDashboard = () => {
                   <p className="text-muted-foreground">No products yet. Add your first product!</p>
                 </Card>
               ) : (
-                products.map((product) => (
-                  <Card key={product.id} className="p-4">
-                    <div className="flex gap-4">
-                      <img
-                        src={product.image_url || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=400&fit=crop"}
-                        alt={product.name}
-                        className="w-24 h-24 object-cover rounded-lg"
-                        onError={(e) => {
-                          e.currentTarget.src = "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=400&fit=crop";
-                        }}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start gap-2">
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-semibold text-foreground truncate">{product.name}</h3>
-                              {!product.is_active && (
-                                <Badge variant="secondary" className="text-xs">Inactive</Badge>
+                products.map((product) => {
+                  const displayImage = product.image_urls?.[0] || product.image_url || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=400&fit=crop";
+                  const imageCount = product.image_urls?.length || (product.image_url ? 1 : 0);
+                  const isService = product.item_type === "service";
+                  
+                  return (
+                    <Card key={product.id} className="p-4">
+                      <div className="flex gap-4">
+                        <div className="relative">
+                          <img
+                            src={displayImage}
+                            alt={product.name}
+                            className="w-24 h-24 object-cover rounded-lg"
+                            onError={(e) => {
+                              e.currentTarget.src = "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=400&h=400&fit=crop";
+                            }}
+                          />
+                          {imageCount > 1 && (
+                            <span className="absolute bottom-1 right-1 bg-black/70 text-white text-xs px-1.5 py-0.5 rounded">
+                              +{imageCount - 1}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-start gap-2">
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <h3 className="font-semibold text-foreground truncate">{product.name}</h3>
+                                {isService && (
+                                  <Badge variant="outline" className="text-xs">Service</Badge>
+                                )}
+                                {!product.is_active && (
+                                  <Badge variant="secondary" className="text-xs">Inactive</Badge>
+                                )}
+                              </div>
+                              <p className="text-sm text-muted-foreground">{product.category}</p>
+                              <p className="font-bold text-accent mt-1">
+                                {product.price !== null ? `${product.price.toLocaleString()} Tsh` : "Request Quote"}
+                              </p>
+                              {!isService && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Stock: {product.stock} {product.unit}
+                                </p>
                               )}
                             </div>
-                            <p className="text-sm text-muted-foreground">{product.category}</p>
-                            <p className="font-bold text-accent mt-1">
-                              {product.price.toLocaleString()} Tsh
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Stock: {product.stock} {product.unit}
-                            </p>
-                          </div>
-                          <div className="flex gap-2 shrink-0">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleEditProduct(product)}
-                            >
-                              <Edit className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="text-destructive hover:text-destructive"
-                              onClick={() => handleDeleteClick(product.id)}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                            <div className="flex gap-2 shrink-0">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleEditProduct(product)}
+                              >
+                                <Edit className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="text-destructive hover:text-destructive"
+                                onClick={() => handleDeleteClick(product.id)}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </Card>
-                ))
+                    </Card>
+                  );
+                })
               )}
             </div>
           </TabsContent>

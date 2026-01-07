@@ -58,6 +58,7 @@ export type Database = {
           country_registered: string
           created_at: string
           id: string
+          national_id_number: string | null
           revenue_authority_number: string | null
           updated_at: string
           user_id: string
@@ -69,6 +70,7 @@ export type Database = {
           country_registered: string
           created_at?: string
           id?: string
+          national_id_number?: string | null
           revenue_authority_number?: string | null
           updated_at?: string
           user_id: string
@@ -80,6 +82,7 @@ export type Database = {
           country_registered?: string
           created_at?: string
           id?: string
+          national_id_number?: string | null
           revenue_authority_number?: string | null
           updated_at?: string
           user_id?: string
@@ -134,10 +137,12 @@ export type Database = {
           description: string | null
           id: string
           image_url: string | null
+          image_urls: string[] | null
           is_active: boolean
+          item_type: string
           merchant_id: string
           name: string
-          price: number
+          price: number | null
           stock: number
           unit: string
           updated_at: string
@@ -148,10 +153,12 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string | null
+          image_urls?: string[] | null
           is_active?: boolean
+          item_type?: string
           merchant_id: string
           name: string
-          price: number
+          price?: number | null
           stock?: number
           unit?: string
           updated_at?: string
@@ -162,10 +169,12 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string | null
+          image_urls?: string[] | null
           is_active?: boolean
+          item_type?: string
           merchant_id?: string
           name?: string
-          price?: number
+          price?: number | null
           stock?: number
           unit?: string
           updated_at?: string
