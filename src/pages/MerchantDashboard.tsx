@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Package, ShoppingCart, TrendingUp, Plus, Edit, Trash2, FileText, Upload, Send, MessageSquare, Settings, Camera, MapPin, Phone, Mail, Globe, Clock } from "lucide-react";
+import { ArrowLeft, Package, ShoppingCart, TrendingUp, Plus, Edit, Trash2, FileText, Upload, Send, MessageSquare, Settings, Camera, MapPin, Phone, Mail, Globe, Clock, Truck, CheckCircle, XCircle, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import ProductFormDialog from "@/components/merchant/ProductFormDialog";
 import DeleteConfirmDialog from "@/components/merchant/DeleteConfirmDialog";
@@ -16,12 +17,8 @@ import BulkUploadDialog from "@/components/merchant/BulkUploadDialog";
 import { useMerchantChat } from "@/hooks/useMerchantChat";
 import { useProducts, Product, ProductFormData } from "@/hooks/useProducts";
 import { useUserRole } from "@/hooks/useUserRole";
-
-const mockQuotations = [
-  { id: "QT-001", customer: "John Doe", items: "Ceramic Tiles x 50sqm", status: "pending", date: "2024-01-15" },
-  { id: "QT-002", customer: "Jane Smith", items: "Wall Paint x 20L", status: "responded", date: "2024-01-14" },
-  { id: "QT-003", customer: "Mike Johnson", items: "Floor Tiles x 30sqm", status: "accepted", date: "2024-01-13" },
-];
+import { useMerchantOrders, OrderStatus } from "@/hooks/useOrders";
+import { useMerchantQuotations, QuotationStatus } from "@/hooks/useQuotations";
 
 const MerchantDashboard = () => {
   const navigate = useNavigate();
@@ -38,6 +35,22 @@ const MerchantDashboard = () => {
     updateProduct,
     deleteProduct,
   } = useProducts(merchantProfile?.id || null);
+
+  // Orders hook - uses real database
+  const {
+    orders,
+    loading: ordersLoading,
+    updateOrderStatus,
+    updateDeliveryFee,
+  } = useMerchantOrders(merchantProfile?.id || null);
+
+  // Quotations hook - uses real database
+  const {
+    quotations,
+    loading: quotationsLoading,
+    respondToQuotation,
+    updateQuotationStatus,
+  } = useMerchantQuotations(merchantProfile?.id || null);
 
   // Shop profile state
   const [shopProfile, setShopProfile] = useState({
@@ -92,17 +105,23 @@ const MerchantDashboard = () => {
   const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const [stats] = useState({
-    totalOrders: 24,
-    revenue: "2,450,000",
-    pendingOrders: 5,
-  });
+  // Order processing states
+  const [deliveryFeeDialogOpen, setDeliveryFeeDialogOpen] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [deliveryFeeInput, setDeliveryFeeInput] = useState("");
 
-  const [orders] = useState([
-    { id: "ORD-001", customer: "John Doe", items: 3, total: "125,000 Tsh", status: "pending" },
-    { id: "ORD-002", customer: "Jane Smith", items: 1, total: "35,000 Tsh", status: "completed" },
-    { id: "ORD-003", customer: "Mike Johnson", items: 5, total: "280,000 Tsh", status: "processing" },
-  ]);
+  // Quotation response states
+  const [quotationResponseOpen, setQuotationResponseOpen] = useState(false);
+  const [selectedQuotationId, setSelectedQuotationId] = useState<string | null>(null);
+  const [quotationPrice, setQuotationPrice] = useState("");
+  const [quotationMessage, setQuotationMessage] = useState("");
+
+  // Calculate stats from real data
+  const stats = {
+    totalOrders: orders.length,
+    revenue: orders.filter(o => o.status === "delivered").reduce((sum, o) => sum + o.total_amount, 0),
+    pendingOrders: orders.filter(o => o.status === "pending" || o.status === "confirmed").length,
+  };
 
   const handleAddProduct = () => {
     setEditingProduct(null);
@@ -186,6 +205,77 @@ const MerchantDashboard = () => {
 
   const selectedConv = conversations.find((c) => c.id === selectedConversation);
 
+  // Order processing functions
+  const handleSetDeliveryFee = (orderId: string) => {
+    setSelectedOrderId(orderId);
+    setDeliveryFeeInput("");
+    setDeliveryFeeDialogOpen(true);
+  };
+
+  const handleConfirmDeliveryFee = async () => {
+    if (!selectedOrderId || !deliveryFeeInput) return;
+    const fee = parseFloat(deliveryFeeInput);
+    if (isNaN(fee) || fee < 0) {
+      toast.error("Please enter a valid delivery fee");
+      return;
+    }
+    await updateDeliveryFee(selectedOrderId, fee);
+    setDeliveryFeeDialogOpen(false);
+    setSelectedOrderId(null);
+  };
+
+  const handleProcessOrder = async (orderId: string, status: OrderStatus) => {
+    await updateOrderStatus(orderId, status);
+  };
+
+  // Quotation processing functions
+  const handleRespondToQuotation = (quotationId: string) => {
+    setSelectedQuotationId(quotationId);
+    setQuotationPrice("");
+    setQuotationMessage("");
+    setQuotationResponseOpen(true);
+  };
+
+  const handleConfirmQuotationResponse = async () => {
+    if (!selectedQuotationId || !quotationPrice) return;
+    const price = parseFloat(quotationPrice);
+    if (isNaN(price) || price < 0) {
+      toast.error("Please enter a valid price");
+      return;
+    }
+    await respondToQuotation(selectedQuotationId, {
+      price,
+      message: quotationMessage,
+      validDays: 7,
+    });
+    setQuotationResponseOpen(false);
+    setSelectedQuotationId(null);
+  };
+
+  const getOrderStatusBadge = (status: string) => {
+    const variants: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
+      pending: "outline",
+      confirmed: "secondary",
+      processing: "secondary",
+      shipped: "default",
+      delivered: "default",
+      cancelled: "destructive",
+    };
+    return variants[status] || "outline";
+  };
+
+  const getQuotationStatusBadge = (status: string) => {
+    const variants: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
+      pending: "outline",
+      reviewed: "secondary",
+      quoted: "default",
+      accepted: "default",
+      rejected: "destructive",
+      expired: "secondary",
+    };
+    return variants[status] || "outline";
+  };
+
   return (
     <div className="min-h-screen bg-background pb-6">
       <header className="sticky top-0 z-40 bg-primary text-primary-foreground shadow-lg">
@@ -229,7 +319,7 @@ const MerchantDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Revenue</p>
-                <p className="text-2xl font-bold text-foreground">{stats.revenue} Tsh</p>
+                <p className="text-2xl font-bold text-foreground">{stats.revenue.toLocaleString()} Tsh</p>
               </div>
               <TrendingUp className="w-8 h-8 text-accent" />
             </div>
@@ -250,8 +340,24 @@ const MerchantDashboard = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="products" className="w-full">
-          <TabsList className="w-full justify-start">
+          <TabsList className="w-full justify-start overflow-x-auto">
             <TabsTrigger value="products">Products</TabsTrigger>
+            <TabsTrigger value="orders">
+              Orders
+              {stats.pendingOrders > 0 && (
+                <Badge variant="destructive" className="ml-2 px-1.5 py-0 text-xs">
+                  {stats.pendingOrders}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="quotations">
+              Quotations
+              {quotations.filter(q => q.status === "pending").length > 0 && (
+                <Badge variant="destructive" className="ml-2 px-1.5 py-0 text-xs">
+                  {quotations.filter(q => q.status === "pending").length}
+                </Badge>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="messages">
               Messages
               {conversations.filter(c => c.unread).length > 0 && (
@@ -260,8 +366,6 @@ const MerchantDashboard = () => {
                 </Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="quotations">Quotations</TabsTrigger>
-            <TabsTrigger value="orders">Orders</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="settings">
               <Settings className="w-4 h-4 mr-1" />
@@ -269,6 +373,7 @@ const MerchantDashboard = () => {
             </TabsTrigger>
           </TabsList>
 
+          {/* Products Tab */}
           <TabsContent value="products" className="space-y-4 mt-6">
             <div className="flex justify-between items-center flex-wrap gap-2">
               <h2 className="text-xl font-bold text-foreground">Product Catalog</h2>
@@ -371,6 +476,261 @@ const MerchantDashboard = () => {
             </div>
           </TabsContent>
 
+          {/* Orders Tab */}
+          <TabsContent value="orders" className="space-y-4 mt-6">
+            <h2 className="text-xl font-bold text-foreground">Customer Orders</h2>
+            <div className="space-y-3">
+              {ordersLoading ? (
+                <Card className="p-8 text-center">
+                  <ShoppingCart className="w-12 h-12 mx-auto text-muted-foreground mb-3 animate-pulse" />
+                  <p className="text-muted-foreground">Loading orders...</p>
+                </Card>
+              ) : orders.length === 0 ? (
+                <Card className="p-8 text-center">
+                  <ShoppingCart className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+                  <p className="text-muted-foreground">No orders yet.</p>
+                </Card>
+              ) : (
+                orders.map((order) => (
+                  <Card key={order.id} className="p-4">
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-semibold text-foreground">Order #{order.id.slice(0, 8)}</p>
+                          <p className="text-sm text-muted-foreground">{order.delivery_full_name}</p>
+                          <p className="text-sm text-muted-foreground">{order.delivery_phone}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {new Date(order.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <Badge variant={getOrderStatusBadge(order.status)}>
+                            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                          </Badge>
+                          <p className="font-bold text-foreground mt-2">
+                            {order.total_amount.toLocaleString()} Tsh
+                          </p>
+                          {order.delivery_fee > 0 && (
+                            <p className="text-xs text-muted-foreground">
+                              (incl. {order.delivery_fee.toLocaleString()} Tsh delivery)
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Order Items */}
+                      <div className="border-t pt-3">
+                        <p className="text-sm font-medium text-foreground mb-2">Items:</p>
+                        <div className="space-y-1">
+                          {order.order_items?.map((item) => (
+                            <div key={item.id} className="flex justify-between text-sm">
+                              <span className="text-muted-foreground">
+                                {item.product_name} x {item.quantity}
+                              </span>
+                              <span className="text-foreground">
+                                {item.price.toLocaleString()} Tsh
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Delivery Address */}
+                      <div className="border-t pt-3">
+                        <p className="text-sm font-medium text-foreground mb-1">Delivery:</p>
+                        <p className="text-sm text-muted-foreground">
+                          {order.delivery_street}, {order.delivery_district}, {order.delivery_region}
+                        </p>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex flex-wrap gap-2 border-t pt-3">
+                        {order.status === "pending" && (
+                          <>
+                            {order.delivery_fee === 0 && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleSetDeliveryFee(order.id)}
+                              >
+                                <DollarSign className="w-4 h-4 mr-1" />
+                                Set Delivery Fee
+                              </Button>
+                            )}
+                            <Button
+                              size="sm"
+                              className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                              onClick={() => handleProcessOrder(order.id, "confirmed")}
+                            >
+                              <CheckCircle className="w-4 h-4 mr-1" />
+                              Confirm Order
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleProcessOrder(order.id, "cancelled")}
+                            >
+                              <XCircle className="w-4 h-4 mr-1" />
+                              Cancel
+                            </Button>
+                          </>
+                        )}
+                        {order.status === "confirmed" && (
+                          <Button
+                            size="sm"
+                            className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                            onClick={() => handleProcessOrder(order.id, "processing")}
+                          >
+                            <Package className="w-4 h-4 mr-1" />
+                            Start Processing
+                          </Button>
+                        )}
+                        {order.status === "processing" && (
+                          <Button
+                            size="sm"
+                            className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                            onClick={() => handleProcessOrder(order.id, "shipped")}
+                          >
+                            <Truck className="w-4 h-4 mr-1" />
+                            Mark as Shipped
+                          </Button>
+                        )}
+                        {order.status === "shipped" && (
+                          <Button
+                            size="sm"
+                            className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                            onClick={() => handleProcessOrder(order.id, "delivered")}
+                          >
+                            <CheckCircle className="w-4 h-4 mr-1" />
+                            Mark as Delivered
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                ))
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Quotations Tab */}
+          <TabsContent value="quotations" className="space-y-4 mt-6">
+            <h2 className="text-xl font-bold text-foreground">Quotation Requests</h2>
+            <div className="space-y-3">
+              {quotationsLoading ? (
+                <Card className="p-8 text-center">
+                  <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-3 animate-pulse" />
+                  <p className="text-muted-foreground">Loading quotations...</p>
+                </Card>
+              ) : quotations.length === 0 ? (
+                <Card className="p-8 text-center">
+                  <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+                  <p className="text-muted-foreground">No quotation requests yet.</p>
+                </Card>
+              ) : (
+                quotations.map((quotation) => (
+                  <Card key={quotation.id} className="p-4">
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-semibold text-foreground">Quotation #{quotation.id.slice(0, 8)}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(quotation.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <Badge variant={getQuotationStatusBadge(quotation.status)}>
+                          {quotation.status.charAt(0).toUpperCase() + quotation.status.slice(1)}
+                        </Badge>
+                      </div>
+
+                      {/* Message */}
+                      {quotation.message && (
+                        <div className="bg-muted p-3 rounded-lg">
+                          <p className="text-sm text-foreground">{quotation.message}</p>
+                        </div>
+                      )}
+
+                      {/* Quotation Items */}
+                      <div className="border-t pt-3">
+                        <p className="text-sm font-medium text-foreground mb-2">Requested Items:</p>
+                        <div className="space-y-2">
+                          {quotation.quotation_items?.map((item) => (
+                            <div key={item.id} className="text-sm">
+                              <div className="flex justify-between">
+                                <span className="font-medium text-foreground">
+                                  {item.product_name} x {item.quantity}
+                                </span>
+                              </div>
+                              {item.specifications && (
+                                <p className="text-muted-foreground text-xs">
+                                  Specs: {item.specifications}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Response (if quoted) */}
+                      {quotation.status === "quoted" && quotation.quoted_price && (
+                        <div className="border-t pt-3 bg-accent/10 -mx-4 px-4 py-3 -mb-4 rounded-b-lg">
+                          <p className="text-sm font-medium text-foreground">Your Quote:</p>
+                          <p className="text-lg font-bold text-accent">
+                            {quotation.quoted_price.toLocaleString()} Tsh
+                          </p>
+                          {quotation.merchant_response && (
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {quotation.merchant_response}
+                            </p>
+                          )}
+                          {quotation.valid_until && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Valid until: {new Date(quotation.valid_until).toLocaleDateString()}
+                            </p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Action Buttons */}
+                      {quotation.status === "pending" && (
+                        <div className="flex gap-2 border-t pt-3">
+                          <Button
+                            size="sm"
+                            onClick={() => updateQuotationStatus(quotation.id, "reviewed")}
+                            variant="outline"
+                          >
+                            Mark as Reviewed
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                            onClick={() => handleRespondToQuotation(quotation.id)}
+                          >
+                            <Send className="w-4 h-4 mr-1" />
+                            Send Quote
+                          </Button>
+                        </div>
+                      )}
+                      {quotation.status === "reviewed" && (
+                        <div className="flex gap-2 border-t pt-3">
+                          <Button
+                            size="sm"
+                            className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                            onClick={() => handleRespondToQuotation(quotation.id)}
+                          >
+                            <Send className="w-4 h-4 mr-1" />
+                            Send Quote
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                ))
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Messages Tab */}
           <TabsContent value="messages" className="space-y-4 mt-6">
             {!selectedConversation ? (
               <>
@@ -489,97 +849,38 @@ const MerchantDashboard = () => {
             )}
           </TabsContent>
 
-          <TabsContent value="quotations" className="space-y-4 mt-6">
-            <h2 className="text-xl font-bold text-foreground">Quotation Requests</h2>
-            <div className="space-y-3">
-              {mockQuotations.map((quotation) => (
-                <Card key={quotation.id} className="p-4">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-start gap-3">
-                      <FileText className="w-5 h-5 text-accent mt-1" />
-                      <div>
-                        <p className="font-semibold text-foreground">{quotation.id}</p>
-                        <p className="text-sm text-muted-foreground">{quotation.customer}</p>
-                        <p className="text-sm text-foreground mt-1">{quotation.items}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-muted-foreground">{quotation.date}</p>
-                      <Badge
-                        variant={
-                          quotation.status === "accepted"
-                            ? "default"
-                            : quotation.status === "responded"
-                            ? "secondary"
-                            : "outline"
-                        }
-                        className="mt-1"
-                      >
-                        {quotation.status}
-                      </Badge>
-                      {quotation.status === "pending" && (
-                        <Button size="sm" className="mt-2 bg-accent hover:bg-accent/90 text-accent-foreground">
-                          Respond
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="orders" className="space-y-4 mt-6">
-            <h2 className="text-xl font-bold text-foreground">Recent Orders</h2>
-            <div className="space-y-3">
-              {orders.map((order) => (
-                <Card key={order.id} className="p-4">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <p className="font-semibold text-foreground">{order.id}</p>
-                      <p className="text-sm text-muted-foreground">{order.customer}</p>
-                      <p className="text-sm text-muted-foreground">{order.items} items</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-foreground">{order.total}</p>
-                      <Badge
-                        variant={
-                          order.status === "completed"
-                            ? "default"
-                            : order.status === "processing"
-                            ? "secondary"
-                            : "outline"
-                        }
-                      >
-                        {order.status}
-                      </Badge>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-
+          {/* Analytics Tab */}
           <TabsContent value="analytics" className="space-y-4 mt-6">
             <Card className="p-6">
               <h2 className="text-xl font-bold text-foreground mb-4">Sales Analytics</h2>
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">This Month</span>
-                  <span className="font-bold text-foreground">1,250,000 Tsh</span>
+                  <span className="text-muted-foreground">Total Orders</span>
+                  <span className="font-bold text-foreground">{orders.length}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Last Month</span>
-                  <span className="font-bold text-foreground">980,000 Tsh</span>
+                  <span className="text-muted-foreground">Completed Orders</span>
+                  <span className="font-bold text-foreground">
+                    {orders.filter(o => o.status === "delivered").length}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Growth</span>
-                  <span className="font-bold text-accent">+27.5%</span>
+                  <span className="text-muted-foreground">Total Revenue</span>
+                  <span className="font-bold text-accent">
+                    {orders.filter(o => o.status === "delivered").reduce((sum, o) => sum + o.total_amount, 0).toLocaleString()} Tsh
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Pending Quotations</span>
+                  <span className="font-bold text-foreground">
+                    {quotations.filter(q => q.status === "pending" || q.status === "reviewed").length}
+                  </span>
                 </div>
               </div>
             </Card>
           </TabsContent>
 
+          {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-6 mt-6">
             <h2 className="text-xl font-bold text-foreground">Shop Settings</h2>
 
@@ -765,7 +1066,7 @@ const MerchantDashboard = () => {
                         placeholder="Enter website URL"
                       />
                     ) : (
-                      <p className="text-foreground">{shopProfile.website}</p>
+                      <p className="text-foreground">{shopProfile.website || "Not set"}</p>
                     )}
                   </div>
                 </div>
@@ -838,9 +1139,9 @@ const MerchantDashboard = () => {
       <DeleteConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDeleteConfirm}
         title="Delete Product"
         description="Are you sure you want to delete this product? This action cannot be undone."
-        onConfirm={handleDeleteConfirm}
       />
 
       <BulkUploadDialog
@@ -848,6 +1149,77 @@ const MerchantDashboard = () => {
         onOpenChange={setBulkUploadOpen}
         onUpload={handleBulkUpload}
       />
+
+      {/* Delivery Fee Dialog */}
+      <Dialog open={deliveryFeeDialogOpen} onOpenChange={setDeliveryFeeDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Set Delivery Fee</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Delivery Fee (Tsh)</Label>
+              <Input
+                type="number"
+                placeholder="Enter delivery fee"
+                value={deliveryFeeInput}
+                onChange={(e) => setDeliveryFeeInput(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeliveryFeeDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              className="bg-accent hover:bg-accent/90 text-accent-foreground"
+              onClick={handleConfirmDeliveryFee}
+            >
+              Set Fee & Notify Customer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Quotation Response Dialog */}
+      <Dialog open={quotationResponseOpen} onOpenChange={setQuotationResponseOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Send Quotation</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Quoted Price (Tsh)</Label>
+              <Input
+                type="number"
+                placeholder="Enter quoted price"
+                value={quotationPrice}
+                onChange={(e) => setQuotationPrice(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Message to Customer</Label>
+              <Textarea
+                placeholder="Add any notes or terms..."
+                value={quotationMessage}
+                onChange={(e) => setQuotationMessage(e.target.value)}
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setQuotationResponseOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              className="bg-accent hover:bg-accent/90 text-accent-foreground"
+              onClick={handleConfirmQuotationResponse}
+            >
+              Send Quotation
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
