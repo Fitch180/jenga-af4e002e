@@ -3,11 +3,11 @@ import { ArrowLeft, Package, Clock, CheckCircle, XCircle, Truck } from "lucide-r
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useOrders, OrderStatus } from "@/contexts/OrderContext";
+import { useOrders, OrderStatus } from "@/hooks/useOrders";
 
 const Orders = () => {
   const navigate = useNavigate();
-  const { orders } = useOrders();
+  const { orders, loading } = useOrders();
 
   const getStatusIcon = (status: OrderStatus) => {
     switch (status) {
@@ -44,6 +44,28 @@ const Orders = () => {
   const getStatusLabel = (status: OrderStatus) => {
     return status.charAt(0).toUpperCase() + status.slice(1);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background pb-20">
+        <header className="sticky top-0 z-40 bg-primary text-primary-foreground shadow-lg">
+          <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
+            <button
+              onClick={() => navigate("/profile")}
+              className="w-10 h-10 rounded-full bg-primary-foreground/10 hover:bg-primary-foreground/20 flex items-center justify-center transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <h1 className="text-xl font-bold">My Orders</h1>
+          </div>
+        </header>
+        <div className="max-w-4xl mx-auto px-4 py-12 text-center">
+          <Package className="w-24 h-24 mx-auto text-muted-foreground mb-4 animate-pulse" />
+          <p className="text-muted-foreground">Loading orders...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (orders.length === 0) {
     return (
@@ -98,7 +120,10 @@ const Orders = () => {
               <div className="flex justify-between items-start">
                 <div className="space-y-1">
                   <p className="text-sm text-muted-foreground">Order ID</p>
-                  <p className="font-semibold text-foreground">{order.id}</p>
+                  <p className="font-semibold text-foreground">{order.id.slice(0, 8)}...</p>
+                  {order.merchant_profiles?.business_name && (
+                    <p className="text-sm text-accent">{order.merchant_profiles.business_name}</p>
+                  )}
                 </div>
                 <Badge className={`${getStatusColor(order.status)} flex items-center gap-1`}>
                   {getStatusIcon(order.status)}
@@ -108,26 +133,26 @@ const Orders = () => {
 
               {/* Order Items Preview */}
               <div className="space-y-2">
-                {order.items.slice(0, 2).map((item, index) => (
-                  <div key={index} className="flex items-center gap-3">
+                {order.order_items?.slice(0, 2).map((item) => (
+                  <div key={item.id} className="flex items-center gap-3">
                     <img
-                      src={item.image}
-                      alt={item.name}
+                      src={item.product_image || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=100"}
+                      alt={item.product_name}
                       className="w-12 h-12 object-cover rounded"
                     />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-foreground truncate">
-                        {item.name}
+                        {item.product_name}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Qty: {item.quantity} • {item.price}
+                        Qty: {item.quantity} • {item.price.toLocaleString()} Tsh
                       </p>
                     </div>
                   </div>
                 ))}
-                {order.items.length > 2 && (
+                {(order.order_items?.length || 0) > 2 && (
                   <p className="text-sm text-muted-foreground">
-                    + {order.items.length - 2} more item(s)
+                    + {(order.order_items?.length || 0) - 2} more item(s)
                   </p>
                 )}
               </div>
@@ -137,13 +162,18 @@ const Orders = () => {
                 <div>
                   <p className="text-xs text-muted-foreground">Total Amount</p>
                   <p className="text-lg font-bold text-accent">
-                    {order.totalAmount.toLocaleString()} Tsh
+                    {order.total_amount.toLocaleString()} Tsh
                   </p>
+                  {order.delivery_fee > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      (incl. {order.delivery_fee.toLocaleString()} Tsh delivery)
+                    </p>
+                  )}
                 </div>
                 <div className="text-right">
                   <p className="text-xs text-muted-foreground">Order Date</p>
                   <p className="text-sm text-foreground">
-                    {order.createdAt.toLocaleDateString('en-GB', {
+                    {new Date(order.created_at).toLocaleDateString('en-GB', {
                       day: '2-digit',
                       month: 'short',
                       year: 'numeric'
