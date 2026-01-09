@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, CreditCard, Smartphone } from "lucide-react";
+import { ArrowLeft, CreditCard, Smartphone, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { useCart } from "@/contexts/CartContext";
-import { useOrders, PaymentMethod, DeliveryAddress } from "@/contexts/OrderContext";
+import { useOrders, PaymentMethod, DeliveryAddress } from "@/hooks/useOrders";
 import { toast } from "sonner";
 
 const Checkout = () => {
@@ -16,6 +16,7 @@ const Checkout = () => {
   const { items, totalPrice, clearCart } = useCart();
   const { createOrder } = useOrders();
   
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("mpesa");
   const [address, setAddress] = useState<DeliveryAddress>({
     fullName: "",
@@ -42,22 +43,68 @@ const Checkout = () => {
     return true;
   };
 
-  const handlePlaceOrder = () => {
+  // Group items by merchant
+  const itemsByMerchant = items.reduce((acc, item) => {
+    const merchantId = item.merchantId;
+    if (!acc[merchantId]) {
+      acc[merchantId] = {
+        merchantId,
+        merchantName: item.merchant,
+        items: [],
+        subtotal: 0,
+      };
+    }
+    acc[merchantId].items.push(item);
+    acc[merchantId].subtotal += item.price * item.quantity;
+    return acc;
+  }, {} as Record<string, { merchantId: string; merchantName: string; items: typeof items; subtotal: number }>);
+
+  const handlePlaceOrder = async () => {
     if (!validateForm()) return;
 
-    const orderItems = items.map(item => ({
-      productId: item.productId,
-      name: item.name,
-      price: item.price,
-      quantity: item.quantity,
-      image: item.image,
-      merchant: item.merchant,
-    }));
+    setIsSubmitting(true);
+    try {
+      const merchantGroups = Object.values(itemsByMerchant);
+      const orderIds: string[] = [];
 
-    const orderId = createOrder(orderItems, address, paymentMethod, totalPrice);
-    clearCart();
-    toast.success("Order placed successfully!");
-    navigate(`/orders/${orderId}`);
+      // Create separate orders for each merchant
+      for (const group of merchantGroups) {
+        const orderData = {
+          merchant_id: group.merchantId,
+          payment_method: paymentMethod,
+          subtotal: group.subtotal,
+          delivery_fee: 0, // Merchant will set this
+          total_amount: group.subtotal, // Will be updated when merchant sets delivery fee
+          delivery_address: address,
+          items: group.items.map(item => ({
+            product_id: item.productId,
+            product_name: item.name,
+            product_image: item.image,
+            price: item.price,
+            quantity: item.quantity,
+          })),
+        };
+
+        const orderId = await createOrder(orderData);
+        if (orderId) {
+          orderIds.push(orderId);
+        }
+      }
+
+      if (orderIds.length > 0) {
+        clearCart();
+        if (orderIds.length === 1) {
+          navigate(`/orders/${orderIds[0]}`);
+        } else {
+          navigate("/orders");
+        }
+      }
+    } catch (error) {
+      console.error("Error placing order:", error);
+      toast.error("Failed to place order");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (items.length === 0) {
@@ -208,40 +255,75 @@ const Checkout = () => {
                   </div>
                 </Label>
               </div>
+
+              <div className="flex items-center space-x-3 p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
+                <RadioGroupItem value="cash" id="cash" />
+                <Label htmlFor="cash" className="flex items-center gap-3 cursor-pointer flex-1">
+                  <CreditCard className="w-5 h-5 text-accent" />
+                  <div>
+                    <p className="font-semibold">Cash on Delivery</p>
+                    <p className="text-sm text-muted-foreground">Pay when you receive your order</p>
+                  </div>
+                </Label>
+              </div>
             </div>
           </RadioGroup>
         </Card>
 
-        {/* Order Summary */}
+        {/* Order Summary - Grouped by Merchant */}
         <Card className="p-6 space-y-4">
           <h2 className="text-xl font-bold text-foreground">Order Summary</h2>
           <Separator />
           
-          <div className="space-y-3">
-            {items.map((item) => (
-              <div key={item.id} className="flex justify-between text-sm">
-                <span className="text-muted-foreground">
-                  {item.name} x {item.quantity}
-                </span>
-                <span className="font-medium">
-                  {(parseInt(item.price.replace(/[^0-9]/g, "")) * item.quantity).toLocaleString()} Tsh
-                </span>
+          <div className="space-y-6">
+            {Object.values(itemsByMerchant).map((group) => (
+              <div key={group.merchantId} className="space-y-3">
+                <p className="font-medium text-foreground">{group.merchantName}</p>
+                {group.items.map((item) => (
+                  <div key={item.id} className="flex justify-between text-sm pl-4">
+                    <span className="text-muted-foreground">
+                      {item.name} x {item.quantity}
+                    </span>
+                    <span className="font-medium">
+                      {(item.price * item.quantity).toLocaleString()} Tsh
+                    </span>
+                  </div>
+                ))}
+                <div className="flex justify-between text-sm pl-4 border-t pt-2">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span className="font-medium">{group.subtotal.toLocaleString()} Tsh</span>
+                </div>
+                <div className="flex justify-between text-sm pl-4 text-muted-foreground">
+                  <span>Delivery Fee</span>
+                  <span className="italic">To be set by merchant</span>
+                </div>
               </div>
             ))}
             
             <Separator />
             
             <div className="flex justify-between text-lg font-bold text-foreground">
-              <span>Total</span>
+              <span>Total (excluding delivery)</span>
               <span>{totalPrice.toLocaleString()} Tsh</span>
             </div>
+            <p className="text-xs text-muted-foreground">
+              Note: Delivery fees will be added by each merchant after order confirmation.
+            </p>
           </div>
 
           <Button
             onClick={handlePlaceOrder}
+            disabled={isSubmitting}
             className="w-full bg-accent hover:bg-accent/90 text-accent-foreground h-12 text-lg"
           >
-            Place Order
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                Placing Order...
+              </>
+            ) : (
+              `Place Order${Object.keys(itemsByMerchant).length > 1 ? 's' : ''}`
+            )}
           </Button>
         </Card>
       </main>

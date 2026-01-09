@@ -10,19 +10,23 @@ import { toast } from "sonner";
 interface ProductCardProps {
   id: string;
   name: string;
-  price: string;
+  price: number | null;
+  priceDisplay?: string;
   merchant: string;
+  merchantId: string;
   image: string;
   isPinned?: boolean;
   onPin?: () => void;
   itemType?: "product" | "service";
 }
 
-export const ProductCard = ({ id, name, price, merchant, image, isPinned, onPin, itemType = "product" }: ProductCardProps) => {
+export const ProductCard = ({ id, name, price, priceDisplay, merchant, merchantId, image, isPinned, onPin, itemType = "product" }: ProductCardProps) => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
+
+  const displayPrice = priceDisplay || (price ? `${price.toLocaleString()} Tsh` : "Request Quote");
 
   const handleImageLoad = () => {
     setImageLoading(false);
@@ -35,13 +39,19 @@ export const ProductCard = ({ id, name, price, merchant, image, isPinned, onPin,
   
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!price) {
+      toast.error("This item requires a quotation request");
+      return;
+    }
     addToCart({
       id: `${id}-${Date.now()}`,
       productId: id,
       name,
-      price,
+      price: price,
+      priceDisplay: displayPrice,
       image,
       merchant,
+      merchantId,
     });
   };
 
@@ -116,7 +126,7 @@ export const ProductCard = ({ id, name, price, merchant, image, isPinned, onPin,
             )}
           </div>
           <p className="text-sm text-muted-foreground">{merchant}</p>
-          <p className="text-xl font-bold text-accent">{price}</p>
+          <p className="text-xl font-bold text-accent">{displayPrice}</p>
         </div>
       </div>
     </Card>

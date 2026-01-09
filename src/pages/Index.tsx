@@ -1,15 +1,39 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Pin } from "lucide-react";
+import { Search, Pin, Loader2 } from "lucide-react";
 import { MerchantCard } from "@/components/MerchantCard";
 import { ProductCard } from "@/components/ProductCard";
 import { CategoryFilter } from "@/components/CategoryFilter";
 import { BottomNav } from "@/components/BottomNav";
 import SearchFilterDialog from "@/components/SearchFilterDialog";
+import NotificationBell from "@/components/NotificationBell";
 import Chat from "./Chat";
 import Profile from "./Profile";
-import { CATEGORIES, MERCHANTS, PRODUCTS } from "@/data/mockData";
+import { CATEGORIES } from "@/data/mockData";
 import { usePinned } from "@/contexts/PinnedContext";
+import { supabase } from "@/integrations/supabase/client";
+
+interface MerchantProfile {
+  id: string;
+  user_id: string;
+  business_name: string;
+  country_registered: string;
+  approval_status: string;
+}
+
+interface Product {
+  id: string;
+  merchant_id: string;
+  name: string;
+  description: string | null;
+  price: number | null;
+  category: string;
+  image_url: string | null;
+  item_type: string;
+  merchant_profiles?: {
+    business_name: string;
+  };
+}
 
 const Index = () => {
   const navigate = useNavigate();
@@ -17,6 +41,44 @@ const Index = () => {
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchOpen, setSearchOpen] = useState(false);
   const { isMerchantPinned, isProductPinned, toggleMerchantPin, toggleProductPin } = usePinned();
+
+  const [merchants, setMerchants] = useState<MerchantProfile[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // Fetch approved merchants
+        const { data: merchantData, error: merchantError } = await supabase
+          .from("merchant_profiles")
+          .select("*")
+          .eq("approval_status", "approved");
+
+        if (merchantError) throw merchantError;
+        setMerchants(merchantData || []);
+
+        // Fetch products from approved merchants
+        const { data: productData, error: productError } = await supabase
+          .from("products")
+          .select(`
+            *,
+            merchant_profiles (business_name)
+          `)
+          .eq("is_active", true);
+
+        if (productError) throw productError;
+        setProducts(productData || []);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleTabChange = (tab: string) => {
     if (tab === "cart") {
@@ -35,16 +97,24 @@ const Index = () => {
       return <Profile />;
     }
 
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-accent" />
+        </div>
+      );
+    }
+
     const filteredMerchants = activeCategory === "All" 
-      ? MERCHANTS 
-      : MERCHANTS.filter(m => m.category === activeCategory);
+      ? merchants 
+      : merchants;
 
     const filteredProducts = activeCategory === "All"
-      ? PRODUCTS
-      : PRODUCTS.filter(p => p.category === activeCategory);
+      ? products
+      : products.filter(p => p.category.toUpperCase() === activeCategory);
 
-    const pinnedMerchantsList = MERCHANTS.filter(m => isMerchantPinned(m.id));
-    const pinnedProductsList = PRODUCTS.filter(p => isProductPinned(p.id));
+    const pinnedMerchantsList = merchants.filter(m => isMerchantPinned(m.id));
+    const pinnedProductsList = products.filter(p => isProductPinned(p.id));
 
     if (activeTab === "merchants") {
       return (
@@ -59,14 +129,12 @@ const Index = () => {
                   >
                     <div className="relative mx-auto mb-2">
                       <div 
-                        className="w-20 h-20 rounded-full overflow-hidden bg-muted border-2 border-jenga-orange cursor-pointer transition-transform duration-200 hover:scale-105"
+                        className="w-20 h-20 rounded-full overflow-hidden bg-muted border-2 border-jenga-orange cursor-pointer transition-transform duration-200 hover:scale-105 flex items-center justify-center"
                         onClick={() => navigate(`/merchant/${merchant.id}`)}
                       >
-                        <img
-                          src={merchant.image}
-                          alt={merchant.name}
-                          className="w-full h-full object-cover"
-                        />
+                        <span className="text-2xl font-bold text-muted-foreground">
+                          {merchant.business_name.charAt(0)}
+                        </span>
                       </div>
                       <button
                         onClick={(e) => {
@@ -82,7 +150,7 @@ const Index = () => {
                       className="text-xs text-center text-muted-foreground truncate cursor-pointer"
                       onClick={() => navigate(`/merchant/${merchant.id}`)}
                     >
-                      {merchant.name}
+                      {merchant.business_name}
                     </p>
                   </div>
                 ))}
@@ -96,17 +164,27 @@ const Index = () => {
             onCategoryChange={setActiveCategory}
           />
 
-          <div className="space-y-3">
-            {filteredMerchants.map((merchant) => (
-              <div key={merchant.id} onClick={() => navigate(`/merchant/${merchant.id}`)}>
-                <MerchantCard
-                  {...merchant}
-                  isPinned={isMerchantPinned(merchant.id)}
-                  onPin={() => toggleMerchantPin(merchant.id)}
-                />
-              </div>
-            ))}
-          </div>
+          {filteredMerchants.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <p>No merchants found</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredMerchants.map((merchant) => (
+                <div key={merchant.id} onClick={() => navigate(`/merchant/${merchant.id}`)}>
+                  <MerchantCard
+                    id={merchant.id}
+                    name={merchant.business_name}
+                    location={merchant.country_registered}
+                    category=""
+                    image=""
+                    isPinned={isMerchantPinned(merchant.id)}
+                    onPin={() => toggleMerchantPin(merchant.id)}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       );
     }
@@ -127,11 +205,17 @@ const Index = () => {
                         className="w-20 h-20 rounded-full overflow-hidden bg-muted border-2 border-jenga-orange cursor-pointer transition-transform duration-200 hover:scale-105"
                         onClick={() => navigate(`/product/${product.id}`)}
                       >
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          className="w-full h-full object-cover"
-                        />
+                        {product.image_url ? (
+                          <img
+                            src={product.image_url}
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                            {product.name.charAt(0)}
+                          </div>
+                        )}
                       </div>
                       <button
                         onClick={(e) => {
@@ -161,16 +245,28 @@ const Index = () => {
             onCategoryChange={setActiveCategory}
           />
 
-          <div className="space-y-3">
-            {filteredProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                {...product}
-                isPinned={isProductPinned(product.id)}
-                onPin={() => toggleProductPin(product.id)}
-              />
-            ))}
-          </div>
+          {filteredProducts.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <p>No products found</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filteredProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  id={product.id}
+                  name={product.name}
+                  price={product.price}
+                  merchant={product.merchant_profiles?.business_name || "Unknown"}
+                  merchantId={product.merchant_id}
+                  image={product.image_url || "/placeholder.svg"}
+                  itemType={product.item_type as "product" | "service"}
+                  isPinned={isProductPinned(product.id)}
+                  onPin={() => toggleProductPin(product.id)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       );
     }
@@ -198,15 +294,18 @@ const Index = () => {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-primary text-primary-foreground shadow-lg">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">
+          <h1 className="text-2xl font-bold">
             {activeTab === "merchants" ? "Merchants" : "Products"}
           </h1>
-          <button 
-            onClick={() => setSearchOpen(true)}
-            className="w-14 h-14 rounded-full bg-accent flex items-center justify-center hover:bg-accent/90 transition-colors shadow-lg"
-          >
-            <Search className="w-6 h-6 text-accent-foreground" />
-          </button>
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+            <button 
+              onClick={() => setSearchOpen(true)}
+              className="w-10 h-10 rounded-full bg-accent flex items-center justify-center hover:bg-accent/90 transition-colors"
+            >
+              <Search className="w-5 h-5 text-accent-foreground" />
+            </button>
+          </div>
         </div>
       </header>
 

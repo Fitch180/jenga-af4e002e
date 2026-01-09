@@ -1,31 +1,86 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin, Phone, Mail, MessageSquare } from "lucide-react";
+import { ArrowLeft, MapPin, Phone, Mail, MessageSquare, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { MERCHANTS, PRODUCTS } from "@/data/mockData";
 import { ProductCard } from "@/components/ProductCard";
-import { useQuotations } from "@/contexts/QuotationContext";
+import { useQuotations } from "@/hooks/useQuotations";
 import { useChat } from "@/hooks/useChat";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
+interface MerchantProfile {
+  id: string;
+  user_id: string;
+  business_name: string;
+  country_registered: string;
+  approval_status: string;
+}
+
+interface Product {
+  id: string;
+  merchant_id: string;
+  name: string;
+  description: string | null;
+  price: number | null;
+  category: string;
+  image_url: string | null;
+  item_type: string;
+}
 
 const MerchantDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { addQuotation } = useQuotations();
+  const { createQuotation } = useQuotations();
   const { getOrCreateConversation } = useChat();
   const [quotationRequest, setQuotationRequest] = useState("");
   const [quotationItems, setQuotationItems] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const merchant = MERCHANTS.find(m => m.id === Number(id));
-  const merchantProducts = PRODUCTS.filter(p => p.merchantId === Number(id));
+  const [merchant, setMerchant] = useState<MerchantProfile | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchMerchantData = async () => {
+      if (!id) return;
+
+      setLoading(true);
+      try {
+        // Fetch merchant profile
+        const { data: merchantData, error: merchantError } = await supabase
+          .from("merchant_profiles")
+          .select("*")
+          .eq("id", id)
+          .single();
+
+        if (merchantError) throw merchantError;
+        setMerchant(merchantData);
+
+        // Fetch merchant's products
+        const { data: productData, error: productError } = await supabase
+          .from("products")
+          .select("*")
+          .eq("merchant_id", id)
+          .eq("is_active", true);
+
+        if (productError) throw productError;
+        setProducts(productData || []);
+      } catch (error) {
+        console.error("Error fetching merchant:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMerchantData();
+  }, [id]);
   
   const getMerchantDescription = (category: string) => {
     const descriptions: Record<string, string> = {
@@ -47,6 +102,14 @@ const MerchantDetail = () => {
     return descriptions[category] || "Quality products and services for all your housing needs.";
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-accent" />
+      </div>
+    );
+  }
+
   if (!merchant) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -58,36 +121,47 @@ const MerchantDetail = () => {
     );
   }
 
-  const handleSendQuotation = () => {
+  const handleSendQuotation = async () => {
     if (!quotationRequest.trim()) {
+      toast.error("Please describe your requirements");
       return;
     }
-    
-    // Parse items from the items field
-    const items = quotationItems.split('\n').filter(line => line.trim()).map(line => {
-      const parts = line.split('-').map(p => p.trim());
-      return {
-        productName: parts[0] || line,
-        quantity: parseInt(parts[1]) || 1,
-        specifications: parts[2] || undefined
-      };
-    });
 
-    addQuotation({
-      merchantId: Number(id),
-      merchantName: merchant.name,
-      userId: "user-1",
-      items: items.length > 0 ? items : [{ productName: "General inquiry", quantity: 1 }],
-      message: quotationRequest
-    });
-    
-    setQuotationRequest("");
-    setQuotationItems("");
-    setIsDialogOpen(false);
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Parse items from the items field
+      const items = quotationItems.split('\n').filter(line => line.trim()).map(line => {
+        const parts = line.split('-').map(p => p.trim());
+        return {
+          product_name: parts[0] || line,
+          quantity: parseInt(parts[1]) || 1,
+          specifications: parts[2] || undefined
+        };
+      });
+
+      const success = await createQuotation({
+        merchant_id: id!,
+        message: quotationRequest,
+        items: items.length > 0 ? items : [{ product_name: "General inquiry", quantity: 1 }],
+      });
+
+      if (success) {
+        setQuotationRequest("");
+        setQuotationItems("");
+        setIsDialogOpen(false);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const openMap = () => {
-    window.open(`https://www.google.com/maps/search/${encodeURIComponent(merchant.location)}`, "_blank");
+    window.open(`https://www.google.com/maps/search/${encodeURIComponent(merchant.country_registered)}`, "_blank");
   };
 
   const handleStartChat = async () => {
@@ -96,12 +170,10 @@ const MerchantDetail = () => {
       return;
     }
 
-    if (!merchant) return;
-
     const conversationId = await getOrCreateConversation(
-      merchant.id,
-      merchant.name,
-      merchant.image
+      parseInt(id || "0"),
+      merchant.business_name,
+      ""
     );
 
     if (conversationId) {
@@ -120,7 +192,7 @@ const MerchantDetail = () => {
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="text-xl font-bold">{merchant.name}</h1>
+          <h1 className="text-xl font-bold">{merchant.business_name}</h1>
         </div>
       </header>
 
@@ -137,21 +209,19 @@ const MerchantDetail = () => {
           </div>
           
           {/* Profile Photo */}
-          <div className="absolute left-6 -bottom-16 w-32 h-32 rounded-lg overflow-hidden border-4 border-background bg-card shadow-xl">
-            <img
-              src={merchant.image}
-              alt={merchant.name}
-              className="w-full h-full object-cover"
-            />
+          <div className="absolute left-6 -bottom-16 w-32 h-32 rounded-lg overflow-hidden border-4 border-background bg-card shadow-xl flex items-center justify-center">
+            <span className="text-4xl font-bold text-muted-foreground">
+              {merchant.business_name.charAt(0)}
+            </span>
           </div>
         </div>
 
         {/* Merchant Info */}
         <div className="px-4 pt-20 pb-6 space-y-6">
           <div>
-            <h2 className="text-3xl font-bold text-foreground mb-2">{merchant.name}</h2>
+            <h2 className="text-3xl font-bold text-foreground mb-2">{merchant.business_name}</h2>
             <p className="text-muted-foreground leading-relaxed">
-              {getMerchantDescription(merchant.category)}
+              {getMerchantDescription("BUILDING")}
             </p>
           </div>
               
@@ -159,7 +229,7 @@ const MerchantDetail = () => {
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-foreground">
                 <MapPin className="w-5 h-5 text-accent" />
-                <span>{merchant.location}</span>
+                <span>{merchant.country_registered}</span>
                 <button
                   onClick={openMap}
                   className="text-accent hover:text-accent/80 text-sm font-medium ml-2"
@@ -175,8 +245,8 @@ const MerchantDetail = () => {
               </div>
               <div className="flex items-center gap-3 text-foreground">
                 <Mail className="w-5 h-5 text-accent" />
-                <a href={`mailto:info@${merchant.name.toLowerCase().replace(/\s+/g, '')}.co.tz`} className="hover:text-accent transition-colors">
-                  info@{merchant.name.toLowerCase().replace(/\s+/g, '')}.co.tz
+                <a href={`mailto:info@${merchant.business_name.toLowerCase().replace(/\s+/g, '')}.co.tz`} className="hover:text-accent transition-colors">
+                  info@{merchant.business_name.toLowerCase().replace(/\s+/g, '')}.co.tz
                 </a>
               </div>
             </div>
@@ -199,7 +269,7 @@ const MerchantDetail = () => {
               </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Request Quotation from {merchant.name}</DialogTitle>
+                <DialogTitle>Request Quotation from {merchant.business_name}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-4">
                 <div className="space-y-2">
@@ -231,9 +301,9 @@ const MerchantDetail = () => {
                   <Button
                     onClick={handleSendQuotation}
                     className="bg-accent hover:bg-accent/90 text-accent-foreground"
-                    disabled={!quotationRequest.trim()}
+                    disabled={!quotationRequest.trim() || isSubmitting}
                   >
-                    Send Request
+                    {isSubmitting ? "Sending..." : "Send Request"}
                   </Button>
                 </div>
               </div>
@@ -246,16 +316,28 @@ const MerchantDetail = () => {
             <h3 className="text-xl font-semibold text-foreground mb-4">
               Products & Services
             </h3>
-            <div className="space-y-3">
-              {merchantProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  {...product}
-                  isPinned={false}
-                  onPin={() => {}}
-                />
-              ))}
-            </div>
+            {products.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>No products or services listed yet</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {products.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    id={product.id}
+                    name={product.name}
+                    price={product.price}
+                    merchant={merchant.business_name}
+                    merchantId={product.merchant_id}
+                    image={product.image_url || "/placeholder.svg"}
+                    itemType={product.item_type as "product" | "service"}
+                    isPinned={false}
+                    onPin={() => {}}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </main>

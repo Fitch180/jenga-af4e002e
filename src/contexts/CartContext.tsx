@@ -5,9 +5,11 @@ export interface CartItem {
   id: string;
   productId: string;
   name: string;
-  price: string;
+  price: number;
+  priceDisplay: string;
   image: string;
   merchant: string;
+  merchantId: string;
   quantity: number;
 }
 
@@ -24,7 +26,7 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-const [items, setItems] = useState<CartItem[]>(() => {
+  const [items, setItems] = useState<CartItem[]>(() => {
     try {
       const saved = localStorage.getItem("cart");
       if (saved) {
@@ -77,14 +79,12 @@ const [items, setItems] = useState<CartItem[]>(() => {
 
   const clearCart = () => {
     setItems([]);
-    toast.success("Cart cleared");
   };
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   
   const totalPrice = items.reduce((sum, item) => {
-    const price = parseInt(item.price.replace(/[^0-9]/g, ""));
-    return sum + price * item.quantity;
+    return sum + item.price * item.quantity;
   }, 0);
 
   return (
