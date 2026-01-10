@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { CATEGORIES, SERVICE_CATEGORIES } from "@/data/mockData";
 import { Product, ProductFormData } from "@/hooks/useProducts";
-import { X, Plus, Image as ImageIcon } from "lucide-react";
+import { MultiImageUpload } from "@/components/ImageUpload";
 
 interface ProductFormDialogProps {
   open: boolean;
@@ -31,7 +31,6 @@ const ProductFormDialog = ({ open, onOpenChange, product, onSave, saving }: Prod
     is_active: true,
     item_type: "product" as "product" | "service",
   });
-  const [newImageUrl, setNewImageUrl] = useState("");
 
   useEffect(() => {
     if (product) {
@@ -61,25 +60,7 @@ const ProductFormDialog = ({ open, onOpenChange, product, onSave, saving }: Prod
         item_type: "product",
       });
     }
-    setNewImageUrl("");
   }, [product, open]);
-
-  const handleAddImage = () => {
-    if (newImageUrl.trim() && formData.image_urls.length < 5) {
-      setFormData({
-        ...formData,
-        image_urls: [...formData.image_urls, newImageUrl.trim()],
-      });
-      setNewImageUrl("");
-    }
-  };
-
-  const handleRemoveImage = (index: number) => {
-    setFormData({
-      ...formData,
-      image_urls: formData.image_urls.filter((_, i) => i !== index),
-    });
-  };
 
   const isService = formData.item_type === "service";
   const priceRequired = !isService;
@@ -250,63 +231,13 @@ const ProductFormDialog = ({ open, onOpenChange, product, onSave, saving }: Prod
           {/* Multi-Image Upload Section */}
           <div className="space-y-2">
             <Label>Images (up to 5)</Label>
-            <div className="flex gap-2">
-              <Input
-                value={newImageUrl}
-                onChange={(e) => setNewImageUrl(e.target.value)}
-                placeholder="Paste image URL and click Add"
-                type="url"
-                disabled={formData.image_urls.length >= 5}
-              />
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleAddImage}
-                disabled={!newImageUrl.trim() || formData.image_urls.length >= 5}
-              >
-                <Plus className="w-4 h-4" />
-              </Button>
-            </div>
-            
-            {formData.image_urls.length > 0 && (
-              <div className="grid grid-cols-5 gap-2 mt-2">
-                {formData.image_urls.map((url, index) => (
-                  <div key={index} className="relative group">
-                    <img
-                      src={url}
-                      alt={`Image ${index + 1}`}
-                      className="w-full aspect-square object-cover rounded-lg border"
-                      onError={(e) => {
-                        e.currentTarget.src = "/placeholder.svg";
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveImage(index)}
-                      className="absolute -top-2 -right-2 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                    {index === 0 && (
-                      <span className="absolute bottom-1 left-1 text-xs bg-primary text-primary-foreground px-1 rounded">
-                        Main
-                      </span>
-                    )}
-                  </div>
-                ))}
-                {formData.image_urls.length < 5 && (
-                  <div className="w-full aspect-square border-2 border-dashed rounded-lg flex items-center justify-center text-muted-foreground">
-                    <ImageIcon className="w-8 h-8" />
-                  </div>
-                )}
-              </div>
-            )}
-            
-            {formData.image_urls.length === 0 && (
-              <p className="text-xs text-muted-foreground">
-                Add up to 5 images. The first image will be the main display image.
-              </p>
-            )}
+            <MultiImageUpload
+              values={formData.image_urls}
+              onChange={(urls) => setFormData({ ...formData, image_urls: urls })}
+              bucket="product-images"
+              folder="products"
+              maxImages={5}
+            />
           </div>
 
           <div className="space-y-2">
