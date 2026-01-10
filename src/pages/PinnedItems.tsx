@@ -2,10 +2,13 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Pin, Trash2, Store, Package, ArrowLeft } from "lucide-react";
 import { usePinned } from "@/contexts/PinnedContext";
-import { MERCHANTS, PRODUCTS } from "@/data/mockData";
+import { useProducts } from "@/hooks/useProducts";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,15 +24,42 @@ import {
 const PinnedItems = () => {
   const navigate = useNavigate();
   const { 
+    pinnedMerchants,
+    pinnedProducts: pinnedProductIds,
     toggleMerchantPin, 
     toggleProductPin,
-    isMerchantPinned,
-    isProductPinned 
   } = usePinned();
   const [activeTab, setActiveTab] = useState("merchants");
 
-  const pinnedMerchantsList = MERCHANTS.filter(m => isMerchantPinned(m.id));
-  const pinnedProductsList = PRODUCTS.filter(p => isProductPinned(p.id));
+  // Fetch pinned merchants from database
+  const { data: pinnedMerchantsList = [], isLoading: merchantsLoading } = useQuery({
+    queryKey: ['pinned-merchants', pinnedMerchants],
+    queryFn: async () => {
+      if (pinnedMerchants.length === 0) return [];
+      const { data, error } = await supabase
+        .from('merchant_profiles')
+        .select('*')
+        .in('id', pinnedMerchants);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: pinnedMerchants.length > 0,
+  });
+
+  // Fetch pinned products from database
+  const { data: pinnedProductsList = [], isLoading: productsLoading } = useQuery({
+    queryKey: ['pinned-products', pinnedProductIds],
+    queryFn: async () => {
+      if (pinnedProductIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .in('id', pinnedProductIds);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: pinnedProductIds.length > 0,
+  });
 
   const handleClearAllMerchants = () => {
     pinnedMerchantsList.forEach(m => toggleMerchantPin(m.id));
@@ -69,16 +99,22 @@ const PinnedItems = () => {
           <TabsList className="grid w-full grid-cols-2 mb-6">
             <TabsTrigger value="merchants" className="flex items-center gap-2">
               <Store className="w-4 h-4" />
-              Merchants ({pinnedMerchantsList.length})
+              Merchants ({pinnedMerchants.length})
             </TabsTrigger>
             <TabsTrigger value="products" className="flex items-center gap-2">
               <Package className="w-4 h-4" />
-              Products ({pinnedProductsList.length})
+              Products ({pinnedProductIds.length})
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="merchants" className="space-y-4 animate-fade-in">
-            {pinnedMerchantsList.length > 0 ? (
+            {merchantsLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map(i => (
+                  <Skeleton key={i} className="h-20 w-full" />
+                ))}
+              </div>
+            ) : pinnedMerchantsList.length > 0 ? (
               <>
                 <div className="flex justify-end">
                   <AlertDialog>
@@ -117,22 +153,20 @@ const PinnedItems = () => {
                             className="flex items-center gap-4 flex-1 p-4"
                             onClick={() => navigate(`/merchant/${merchant.id}`)}
                           >
-                            <div className="w-16 h-16 rounded-full overflow-hidden bg-muted flex-shrink-0 ring-2 ring-primary">
-                              <img
-                                src={merchant.image}
-                                alt={merchant.name}
-                                className="w-full h-full object-cover"
-                              />
+                            <div className="w-16 h-16 rounded-full overflow-hidden bg-muted flex-shrink-0 ring-2 ring-primary flex items-center justify-center">
+                              <span className="text-2xl font-bold text-muted-foreground">
+                                {merchant.business_name.charAt(0)}
+                              </span>
                             </div>
                             <div className="flex-1 min-w-0">
                               <h3 className="font-semibold text-foreground truncate">
-                                {merchant.name}
+                                {merchant.business_name}
                               </h3>
                               <p className="text-sm text-muted-foreground truncate">
-                                {merchant.category}
+                                {merchant.approval_status}
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                {merchant.location}
+                                {merchant.country_registered}
                               </p>
                             </div>
                           </div>
@@ -165,7 +199,13 @@ const PinnedItems = () => {
           </TabsContent>
 
           <TabsContent value="products" className="space-y-4 animate-fade-in">
-            {pinnedProductsList.length > 0 ? (
+            {productsLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map(i => (
+                  <Skeleton key={i} className="h-20 w-full" />
+                ))}
+              </div>
+            ) : pinnedProductsList.length > 0 ? (
               <>
                 <div className="flex justify-end">
                   <AlertDialog>
@@ -205,11 +245,17 @@ const PinnedItems = () => {
                             onClick={() => navigate(`/product/${product.id}`)}
                           >
                             <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0 ring-2 ring-primary">
-                              <img
-                                src={product.image}
-                                alt={product.name}
-                                className="w-full h-full object-cover"
-                              />
+                              {product.image_url ? (
+                                <img
+                                  src={product.image_url}
+                                  alt={product.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <Package className="w-8 h-8 text-muted-foreground" />
+                                </div>
+                              )}
                             </div>
                             <div className="flex-1 min-w-0">
                               <h3 className="font-semibold text-foreground truncate">
@@ -219,7 +265,7 @@ const PinnedItems = () => {
                                 {product.category}
                               </p>
                               <p className="text-sm font-medium text-primary">
-                                {product.price}
+                                {product.price ? `Tsh ${product.price.toLocaleString()}` : 'Price on request'}
                               </p>
                             </div>
                           </div>

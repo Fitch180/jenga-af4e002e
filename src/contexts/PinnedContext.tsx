@@ -2,18 +2,18 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "sonner";
 
 interface PinnedContextType {
-  pinnedMerchants: number[];
+  pinnedMerchants: string[];
   pinnedProducts: string[];
-  toggleMerchantPin: (id: number) => void;
+  toggleMerchantPin: (id: string) => void;
   toggleProductPin: (id: string) => void;
-  isMerchantPinned: (id: number) => boolean;
+  isMerchantPinned: (id: string) => boolean;
   isProductPinned: (id: string) => boolean;
 }
 
 const PinnedContext = createContext<PinnedContextType | undefined>(undefined);
 
 export const PinnedProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [pinnedMerchants, setPinnedMerchants] = useState<number[]>(() => {
+  const [pinnedMerchants, setPinnedMerchants] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem("pinnedMerchants");
       if (saved) {
@@ -47,7 +47,7 @@ export const PinnedProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     localStorage.setItem("pinnedProducts", JSON.stringify(pinnedProducts));
   }, [pinnedProducts]);
 
-  const toggleMerchantPin = (id: number) => {
+  const toggleMerchantPin = (id: string) => {
     setPinnedMerchants((prev) => {
       const isPinned = prev.includes(id);
       if (isPinned) {
@@ -73,7 +73,7 @@ export const PinnedProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     });
   };
 
-  const isMerchantPinned = (id: number) => pinnedMerchants.includes(id);
+  const isMerchantPinned = (id: string) => pinnedMerchants.includes(id);
   const isProductPinned = (id: string) => pinnedProducts.includes(id);
 
   return (
