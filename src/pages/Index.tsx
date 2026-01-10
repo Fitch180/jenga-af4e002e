@@ -173,10 +173,8 @@ const Index = () => {
               {filteredMerchants.map((merchant) => (
                 <div key={merchant.id} onClick={() => navigate(`/merchant/${merchant.id}`)}>
                   <MerchantCard
-                    id={merchant.id}
                     name={merchant.business_name}
                     location={merchant.country_registered}
-                    category=""
                     image=""
                     isPinned={isMerchantPinned(merchant.id)}
                     onPin={() => toggleMerchantPin(merchant.id)}
