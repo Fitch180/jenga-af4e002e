@@ -1,16 +1,19 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, FileText } from "lucide-react";
+import { ArrowLeft, FileText, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { useQuotations, QuotationStatus } from "@/hooks/useQuotations";
+import QuotationTracker from "@/components/QuotationTracker";
 import { useState } from "react";
 
 const Quotations = () => {
   const navigate = useNavigate();
   const { quotations, loading, updateQuotationStatus } = useQuotations();
   const [activeTab, setActiveTab] = useState<"all" | "pending" | "quoted" | "completed">("all");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const filteredQuotations = quotations.filter(q => {
     if (activeTab === "all") return true;
@@ -42,6 +45,10 @@ const Quotations = () => {
         return "bg-red-500/20 text-red-700 dark:text-red-400";
     }
   };
+
+  const pendingCount = quotations.filter(q => q.status === "pending" || q.status === "reviewed").length;
+  const quotedCount = quotations.filter(q => q.status === "quoted").length;
+  const completedCount = quotations.filter(q => ["accepted", "rejected", "expired"].includes(q.status)).length;
 
   if (loading) {
     return (
@@ -97,13 +104,13 @@ const Quotations = () => {
                   All ({quotations.length})
                 </TabsTrigger>
                 <TabsTrigger value="pending" className="flex-1">
-                  Pending
+                  Pending ({pendingCount})
                 </TabsTrigger>
                 <TabsTrigger value="quoted" className="flex-1">
-                  Quoted
+                  Quoted ({quotedCount})
                 </TabsTrigger>
                 <TabsTrigger value="completed" className="flex-1">
-                  Completed
+                  Done ({completedCount})
                 </TabsTrigger>
               </TabsList>
 
@@ -114,68 +121,154 @@ const Quotations = () => {
                   </div>
                 ) : (
                   filteredQuotations.map((quotation) => (
-                    <Card key={quotation.id} className="p-4 space-y-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-semibold text-foreground">
-                            {quotation.merchant_profiles?.business_name || "Merchant"}
-                          </p>
-                          <p className="text-sm text-muted-foreground">
-                            {new Date(quotation.created_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <Badge className={getStatusColor(quotation.status)}>
-                          {quotation.status.charAt(0).toUpperCase() + quotation.status.slice(1)}
-                        </Badge>
-                      </div>
-
-                      {/* Items */}
-                      <div className="border-t pt-3">
-                        <p className="text-sm font-medium text-foreground mb-2">Items:</p>
-                        {quotation.quotation_items?.map((item) => (
-                          <div key={item.id} className="text-sm text-muted-foreground">
-                            • {item.product_name} x {item.quantity}
-                            {item.specifications && ` (${item.specifications})`}
-                          </div>
-                        ))}
-                      </div>
-
-                      {quotation.message && (
-                        <p className="text-sm text-muted-foreground italic">
-                          "{quotation.message}"
-                        </p>
-                      )}
-
-                      {/* Quote Response */}
-                      {quotation.status === "quoted" && quotation.quoted_price && (
-                        <div className="bg-accent/10 p-4 rounded-lg space-y-2">
-                          <p className="text-lg font-bold text-accent">
-                            Quoted: {quotation.quoted_price.toLocaleString()} Tsh
-                          </p>
-                          {quotation.merchant_response && (
-                            <p className="text-sm text-foreground">{quotation.merchant_response}</p>
-                          )}
-                          {quotation.valid_until && (
-                            <p className="text-xs text-muted-foreground">
-                              Valid until: {new Date(quotation.valid_until).toLocaleDateString()}
+                    <Card key={quotation.id} className="overflow-hidden">
+                      {/* Header - Always visible */}
+                      <div 
+                        className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
+                        onClick={() => setExpandedId(expandedId === quotation.id ? null : quotation.id)}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <p className="font-semibold text-foreground">
+                              {quotation.merchant_profiles?.business_name || "Merchant"}
                             </p>
-                          )}
-                          <div className="flex gap-2 pt-2">
-                            <Button
-                              size="sm"
-                              className="bg-accent hover:bg-accent/90 text-accent-foreground"
-                              onClick={() => handleAccept(quotation.id)}
-                            >
-                              Accept Quote
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleReject(quotation.id)}
-                            >
-                              Decline
-                            </Button>
+                            <p className="text-sm text-muted-foreground">
+                              {new Date(quotation.created_at).toLocaleDateString('en-GB', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric'
+                              })}
+                            </p>
                           </div>
+                          <div className="flex items-center gap-2">
+                            <Badge className={getStatusColor(quotation.status)}>
+                              {quotation.status.charAt(0).toUpperCase() + quotation.status.slice(1)}
+                            </Badge>
+                            <ChevronRight 
+                              className={`w-5 h-5 text-muted-foreground transition-transform ${
+                                expandedId === quotation.id ? 'rotate-90' : ''
+                              }`} 
+                            />
+                          </div>
+                        </div>
+
+                        {/* Quick preview */}
+                        <p className="text-sm text-muted-foreground mt-2 line-clamp-1">
+                          {quotation.quotation_items?.map(i => i.product_name).join(", ")}
+                        </p>
+                      </div>
+
+                      {/* Expanded Content */}
+                      {expandedId === quotation.id && (
+                        <div className="px-4 pb-4 space-y-4 border-t animate-fade-in">
+                          {/* Tracking */}
+                          <div className="pt-4">
+                            <h4 className="text-sm font-medium text-foreground mb-3">Quotation Status</h4>
+                            <QuotationTracker 
+                              status={quotation.status} 
+                              updatedAt={new Date(quotation.updated_at)}
+                              quotedPrice={quotation.quoted_price}
+                              validUntil={quotation.valid_until}
+                            />
+                          </div>
+
+                          <Separator />
+
+                          {/* Items */}
+                          <div>
+                            <h4 className="text-sm font-medium text-foreground mb-2">Requested Items</h4>
+                            <div className="space-y-2">
+                              {quotation.quotation_items?.map((item) => (
+                                <div key={item.id} className="flex justify-between text-sm">
+                                  <span className="text-muted-foreground">
+                                    {item.product_name} x {item.quantity}
+                                  </span>
+                                  {item.specifications && (
+                                    <span className="text-xs text-muted-foreground italic">
+                                      ({item.specifications})
+                                    </span>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {quotation.message && (
+                            <>
+                              <Separator />
+                              <div>
+                                <h4 className="text-sm font-medium text-foreground mb-1">Your Message</h4>
+                                <p className="text-sm text-muted-foreground italic">"{quotation.message}"</p>
+                              </div>
+                            </>
+                          )}
+
+                          {/* Quote Response */}
+                          {quotation.status === "quoted" && quotation.quoted_price && (
+                            <>
+                              <Separator />
+                              <div className="bg-accent/10 p-4 rounded-lg space-y-3">
+                                <div>
+                                  <h4 className="text-sm font-medium text-foreground mb-1">Merchant's Quote</h4>
+                                  <p className="text-2xl font-bold text-accent">
+                                    {quotation.quoted_price.toLocaleString()} Tsh
+                                  </p>
+                                </div>
+                                
+                                {quotation.merchant_response && (
+                                  <p className="text-sm text-foreground">{quotation.merchant_response}</p>
+                                )}
+                                
+                                {quotation.valid_until && (
+                                  <p className="text-xs text-muted-foreground">
+                                    Valid until: {new Date(quotation.valid_until).toLocaleDateString('en-GB', {
+                                      day: '2-digit',
+                                      month: 'short',
+                                      year: 'numeric'
+                                    })}
+                                  </p>
+                                )}
+                                
+                                <div className="flex gap-2 pt-2">
+                                  <Button
+                                    size="sm"
+                                    className="bg-accent hover:bg-accent/90 text-accent-foreground flex-1"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleAccept(quotation.id);
+                                    }}
+                                  >
+                                    Accept Quote
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="flex-1"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleReject(quotation.id);
+                                    }}
+                                  >
+                                    Decline
+                                  </Button>
+                                </div>
+                              </div>
+                            </>
+                          )}
+
+                          {quotation.status === "accepted" && (
+                            <>
+                              <Separator />
+                              <div className="bg-green-500/10 p-4 rounded-lg text-center">
+                                <p className="text-green-700 dark:text-green-400 font-medium">
+                                  ✓ You accepted this quote for {quotation.quoted_price?.toLocaleString()} Tsh
+                                </p>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  The merchant will contact you to proceed
+                                </p>
+                              </div>
+                            </>
+                          )}
                         </div>
                       )}
                     </Card>

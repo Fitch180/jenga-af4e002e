@@ -1,40 +1,58 @@
-import { CheckCircle, Circle, Clock, Package, Truck, Home } from "lucide-react";
-import { OrderStatus } from "@/hooks/useOrders";
+import { FileText, MessageSquare, DollarSign, CheckCircle, XCircle, Clock } from "lucide-react";
+import { QuotationStatus } from "@/hooks/useQuotations";
 
-interface OrderTrackerProps {
-  status: OrderStatus;
+interface QuotationTrackerProps {
+  status: QuotationStatus;
   updatedAt?: Date;
+  quotedPrice?: number | null;
+  validUntil?: string | null;
 }
 
-const ORDER_STEPS = [
-  { status: "pending", label: "Order Placed", icon: Clock },
-  { status: "confirmed", label: "Confirmed", icon: CheckCircle },
-  { status: "processing", label: "Processing", icon: Package },
-  { status: "shipped", label: "Shipped", icon: Truck },
-  { status: "delivered", label: "Delivered", icon: Home }
+const QUOTATION_STEPS = [
+  { status: "pending", label: "Request Sent", icon: FileText },
+  { status: "reviewed", label: "Reviewing", icon: MessageSquare },
+  { status: "quoted", label: "Quote Received", icon: DollarSign },
+  { status: "accepted", label: "Accepted", icon: CheckCircle },
 ];
 
-const getStatusIndex = (status: OrderStatus): number => {
-  if (status === "cancelled") return -1;
-  const index = ORDER_STEPS.findIndex(s => s.status === status);
+const getStatusIndex = (status: QuotationStatus): number => {
+  if (status === "rejected" || status === "expired") return -1;
+  const index = QUOTATION_STEPS.findIndex(s => s.status === status);
   return index >= 0 ? index : 0;
 };
 
-const OrderTracker = ({ status, updatedAt }: OrderTrackerProps) => {
+const QuotationTracker = ({ status, updatedAt, quotedPrice, validUntil }: QuotationTrackerProps) => {
   const currentIndex = getStatusIndex(status);
 
-  if (status === "cancelled") {
+  if (status === "rejected") {
     return (
       <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 text-center">
-        <p className="text-destructive font-medium">Order Cancelled</p>
+        <XCircle className="w-8 h-8 text-destructive mx-auto mb-2" />
+        <p className="text-destructive font-medium">Quotation Declined</p>
         {updatedAt && (
           <p className="text-sm text-muted-foreground mt-1">
-            Cancelled on {updatedAt.toLocaleDateString('en-GB', {
+            {updatedAt.toLocaleDateString('en-GB', {
               day: '2-digit',
               month: 'short',
               year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
+            })}
+          </p>
+        )}
+      </div>
+    );
+  }
+
+  if (status === "expired") {
+    return (
+      <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4 text-center">
+        <Clock className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
+        <p className="text-yellow-700 dark:text-yellow-400 font-medium">Quotation Expired</p>
+        {validUntil && (
+          <p className="text-sm text-muted-foreground mt-1">
+            Expired on {new Date(validUntil).toLocaleDateString('en-GB', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
             })}
           </p>
         )}
@@ -45,7 +63,7 @@ const OrderTracker = ({ status, updatedAt }: OrderTrackerProps) => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        {ORDER_STEPS.map((step, index) => {
+        {QUOTATION_STEPS.map((step, index) => {
           const Icon = step.icon;
           const isCompleted = index <= currentIndex;
           const isCurrent = index === currentIndex;
@@ -64,7 +82,7 @@ const OrderTracker = ({ status, updatedAt }: OrderTrackerProps) => {
                 >
                   <Icon className="w-5 h-5" />
                 </div>
-                {index < ORDER_STEPS.length - 1 && (
+                {index < QUOTATION_STEPS.length - 1 && (
                   <div
                     className={`absolute top-1/2 left-full w-full h-0.5 -translate-y-1/2 transition-colors ${
                       index < currentIndex ? "bg-accent" : "bg-muted"
@@ -85,6 +103,20 @@ const OrderTracker = ({ status, updatedAt }: OrderTrackerProps) => {
         })}
       </div>
 
+      {/* Price Display for quoted status */}
+      {status === "quoted" && quotedPrice && (
+        <div className="bg-accent/10 rounded-lg p-3 text-center">
+          <p className="text-lg font-bold text-accent">
+            {quotedPrice.toLocaleString()} Tsh
+          </p>
+          {validUntil && (
+            <p className="text-xs text-muted-foreground">
+              Valid until {new Date(validUntil).toLocaleDateString()}
+            </p>
+          )}
+        </div>
+      )}
+
       {updatedAt && (
         <p className="text-sm text-muted-foreground text-center">
           Last updated: {updatedAt.toLocaleDateString('en-GB', {
@@ -100,4 +132,4 @@ const OrderTracker = ({ status, updatedAt }: OrderTrackerProps) => {
   );
 };
 
-export default OrderTracker;
+export default QuotationTracker;
