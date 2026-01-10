@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Package, ShoppingCart, TrendingUp, Plus, Edit, Trash2, FileText, Upload, Send, MessageSquare, Settings, Camera, MapPin, Phone, Mail, Globe, Clock, Truck, CheckCircle, XCircle, DollarSign } from "lucide-react";
+import { ArrowLeft, Package, ShoppingCart, TrendingUp, Plus, Edit, Trash2, FileText, Upload, Send, MessageSquare, Settings, MapPin, Phone, Mail, Globe, Clock, Truck, CheckCircle, XCircle, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,6 +19,7 @@ import { useProducts, Product, ProductFormData } from "@/hooks/useProducts";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useMerchantOrders, OrderStatus } from "@/hooks/useOrders";
 import { useMerchantQuotations, QuotationStatus } from "@/hooks/useQuotations";
+import { ImageUpload } from "@/components/ImageUpload";
 
 const MerchantDashboard = () => {
   const navigate = useNavigate();
@@ -889,63 +890,63 @@ const MerchantDashboard = () => {
               <CardHeader>
                 <CardTitle className="text-lg">Shop Images</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {/* Background Image Preview */}
-                <div className="relative w-full h-40 rounded-lg overflow-hidden bg-muted">
-                  <img
-                    src={isEditingProfile ? editedProfile.backgroundImage : shopProfile.backgroundImage}
-                    alt="Shop background"
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src = "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&h=400&fit=crop";
-                    }}
-                  />
-                  {isEditingProfile && (
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                      <div className="text-center">
-                        <Camera className="w-8 h-8 text-white mx-auto mb-2" />
-                        <Label className="text-white text-sm cursor-pointer hover:underline">
-                          Change Background
-                        </Label>
-                        <Input
-                          type="text"
-                          placeholder="Enter image URL"
-                          value={editedProfile.backgroundImage}
-                          onChange={(e) => setEditedProfile({ ...editedProfile, backgroundImage: e.target.value })}
-                          className="mt-2 max-w-xs mx-auto bg-white/90 text-foreground"
-                        />
-                      </div>
+              <CardContent className="space-y-6">
+                {/* Background Image */}
+                <div className="space-y-2">
+                  <Label>Background Image</Label>
+                  {isEditingProfile ? (
+                    <ImageUpload
+                      value={editedProfile.backgroundImage}
+                      onChange={(url) => setEditedProfile({ ...editedProfile, backgroundImage: url })}
+                      bucket="merchant-images"
+                      folder="backgrounds"
+                      aspectRatio="banner"
+                      placeholder="Upload background image"
+                    />
+                  ) : (
+                    <div className="relative w-full h-40 rounded-lg overflow-hidden bg-muted">
+                      <img
+                        src={shopProfile.backgroundImage}
+                        alt="Shop background"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.src = "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&h=400&fit=crop";
+                        }}
+                      />
                     </div>
                   )}
                 </div>
 
                 {/* Profile Image */}
-                <div className="flex items-center gap-4">
-                  <div className="relative">
-                    <Avatar className="w-24 h-24 border-4 border-background shadow-lg">
-                      <AvatarImage
-                        src={isEditingProfile ? editedProfile.profileImage : shopProfile.profileImage}
-                        alt={shopProfile.name}
-                      />
-                      <AvatarFallback className="text-2xl">{shopProfile.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    {isEditingProfile && (
-                      <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center">
-                        <Camera className="w-6 h-6 text-white" />
+                <div className="space-y-2">
+                  <Label>Profile Image</Label>
+                  <div className="flex items-center gap-4">
+                    {isEditingProfile ? (
+                      <div className="w-32">
+                        <ImageUpload
+                          value={editedProfile.profileImage}
+                          onChange={(url) => setEditedProfile({ ...editedProfile, profileImage: url })}
+                          bucket="merchant-images"
+                          folder="profiles"
+                          aspectRatio="square"
+                          placeholder="Upload"
+                        />
                       </div>
+                    ) : (
+                      <Avatar className="w-24 h-24 border-4 border-background shadow-lg">
+                        <AvatarImage
+                          src={shopProfile.profileImage}
+                          alt={shopProfile.name}
+                        />
+                        <AvatarFallback className="text-2xl">{shopProfile.name.charAt(0)}</AvatarFallback>
+                      </Avatar>
+                    )}
+                    {!isEditingProfile && (
+                      <p className="text-sm text-muted-foreground">
+                        Click "Edit Profile" to change your shop images
+                      </p>
                     )}
                   </div>
-                  {isEditingProfile && (
-                    <div className="flex-1">
-                      <Label>Profile Image URL</Label>
-                      <Input
-                        type="text"
-                        placeholder="Enter profile image URL"
-                        value={editedProfile.profileImage}
-                        onChange={(e) => setEditedProfile({ ...editedProfile, profileImage: e.target.value })}
-                      />
-                    </div>
-                  )}
                 </div>
               </CardContent>
             </Card>
