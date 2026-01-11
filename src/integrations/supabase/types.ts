@@ -53,36 +53,42 @@ export type Database = {
       merchant_profiles: {
         Row: {
           approval_status: Database["public"]["Enums"]["approval_status"]
+          background_image_url: string | null
           business_name: string
           business_registration_number: string | null
           country_registered: string
           created_at: string
           id: string
           national_id_number: string | null
+          profile_image_url: string | null
           revenue_authority_number: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           approval_status?: Database["public"]["Enums"]["approval_status"]
+          background_image_url?: string | null
           business_name: string
           business_registration_number?: string | null
           country_registered: string
           created_at?: string
           id?: string
           national_id_number?: string | null
+          profile_image_url?: string | null
           revenue_authority_number?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           approval_status?: Database["public"]["Enums"]["approval_status"]
+          background_image_url?: string | null
           business_name?: string
           business_registration_number?: string | null
           country_registered?: string
           created_at?: string
           id?: string
           national_id_number?: string | null
+          profile_image_url?: string | null
           revenue_authority_number?: string | null
           updated_at?: string
           user_id?: string

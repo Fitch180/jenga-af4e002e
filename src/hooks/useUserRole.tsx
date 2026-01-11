@@ -12,6 +12,8 @@ interface MerchantProfile {
   country_registered: string;
   revenue_authority_number: string | null;
   approval_status: "pending" | "approved" | "rejected";
+  profile_image_url: string | null;
+  background_image_url: string | null;
 }
 
 export const useUserRole = () => {

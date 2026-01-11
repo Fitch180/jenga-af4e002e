@@ -19,6 +19,8 @@ interface MerchantProfile {
   business_name: string;
   country_registered: string;
   approval_status: string;
+  profile_image_url: string | null;
+  background_image_url: string | null;
 }
 
 interface Product {
@@ -201,18 +203,34 @@ const MerchantDetail = () => {
         <div className="relative">
           {/* Background Banner */}
           <div className="h-48 bg-gradient-to-r from-primary to-primary/70 overflow-hidden">
-            <img 
-              src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&h=400&fit=crop" 
-              alt="Company banner" 
-              className="w-full h-full object-cover opacity-30"
-            />
+            {merchant.background_image_url ? (
+              <img 
+                src={merchant.background_image_url} 
+                alt="Company banner" 
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <img 
+                src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&h=400&fit=crop" 
+                alt="Company banner" 
+                className="w-full h-full object-cover opacity-30"
+              />
+            )}
           </div>
           
           {/* Profile Photo */}
           <div className="absolute left-6 -bottom-16 w-32 h-32 rounded-lg overflow-hidden border-4 border-background bg-card shadow-xl flex items-center justify-center">
-            <span className="text-4xl font-bold text-muted-foreground">
-              {merchant.business_name.charAt(0)}
-            </span>
+            {merchant.profile_image_url ? (
+              <img 
+                src={merchant.profile_image_url} 
+                alt={merchant.business_name} 
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-4xl font-bold text-muted-foreground">
+                {merchant.business_name.charAt(0)}
+              </span>
+            )}
           </div>
         </div>
 
