@@ -19,6 +19,8 @@ interface MerchantProfile {
   business_name: string;
   country_registered: string;
   approval_status: string;
+  profile_image_url: string | null;
+  background_image_url: string | null;
 }
 
 interface Product {
@@ -175,7 +177,7 @@ const Index = () => {
                   <MerchantCard
                     name={merchant.business_name}
                     location={merchant.country_registered}
-                    image=""
+                    image={merchant.profile_image_url || ""}
                     isPinned={isMerchantPinned(merchant.id)}
                     onPin={() => toggleMerchantPin(merchant.id)}
                   />

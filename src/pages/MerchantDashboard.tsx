@@ -20,6 +20,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { useMerchantOrders, OrderStatus } from "@/hooks/useOrders";
 import { useMerchantQuotations, QuotationStatus } from "@/hooks/useQuotations";
 import { ImageUpload } from "@/components/ImageUpload";
+import { supabase } from "@/integrations/supabase/client";
 
 const MerchantDashboard = () => {
   const navigate = useNavigate();
@@ -57,8 +58,8 @@ const MerchantDashboard = () => {
   const [shopProfile, setShopProfile] = useState({
     name: merchantProfile?.business_name || "Your Business",
     description: "Premium products and services for your needs.",
-    profileImage: "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=400&h=400&fit=crop",
-    backgroundImage: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1200&h=400&fit=crop",
+    profileImage: merchantProfile?.profile_image_url || "",
+    backgroundImage: merchantProfile?.background_image_url || "",
     location: "Location not set",
     phone: "Phone not set",
     email: "Email not set",
@@ -73,10 +74,14 @@ const MerchantDashboard = () => {
       setShopProfile(prev => ({
         ...prev,
         name: merchantProfile.business_name,
+        profileImage: merchantProfile.profile_image_url || "",
+        backgroundImage: merchantProfile.background_image_url || "",
       }));
       setEditedProfile(prev => ({
         ...prev,
         name: merchantProfile.business_name,
+        profileImage: merchantProfile.profile_image_url || "",
+        backgroundImage: merchantProfile.background_image_url || "",
       }));
     }
   }, [merchantProfile]);
@@ -1105,7 +1110,23 @@ const MerchantDashboard = () => {
                   </Button>
                   <Button
                     className="bg-accent hover:bg-accent/90 text-accent-foreground"
-                    onClick={() => {
+                    onClick={async () => {
+                      // Save to database
+                      if (merchantProfile?.id) {
+                        const { error } = await supabase
+                          .from("merchant_profiles")
+                          .update({
+                            profile_image_url: editedProfile.profileImage || null,
+                            background_image_url: editedProfile.backgroundImage || null,
+                          })
+                          .eq("id", merchantProfile.id);
+                        
+                        if (error) {
+                          toast.error("Failed to save profile images");
+                          console.error("Error saving profile images:", error);
+                          return;
+                        }
+                      }
                       setShopProfile(editedProfile);
                       setIsEditingProfile(false);
                       toast.success("Shop profile updated successfully!");
