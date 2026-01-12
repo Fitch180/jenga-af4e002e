@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Package, ShoppingCart, TrendingUp, Plus, Edit, Trash2, FileText, Upload, Send, MessageSquare, Settings, MapPin, Phone, Mail, Globe, Clock, Truck, CheckCircle, XCircle, DollarSign } from "lucide-react";
+import { ArrowLeft, Package, ShoppingCart, TrendingUp, Plus, Edit, Trash2, FileText, Upload, Send, MessageSquare, Settings, MapPin, Phone, Mail, Globe, Clock, Truck, CheckCircle, XCircle, DollarSign, Tag, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -21,6 +21,11 @@ import { useMerchantOrders, OrderStatus } from "@/hooks/useOrders";
 import { useMerchantQuotations, QuotationStatus } from "@/hooks/useQuotations";
 import { ImageUpload } from "@/components/ImageUpload";
 import { supabase } from "@/integrations/supabase/client";
+
+interface MerchantTag {
+  id: string;
+  name: string;
+}
 
 const MerchantDashboard = () => {
   const navigate = useNavigate();
@@ -57,37 +62,99 @@ const MerchantDashboard = () => {
   // Shop profile state
   const [shopProfile, setShopProfile] = useState({
     name: merchantProfile?.business_name || "Your Business",
-    description: "Premium products and services for your needs.",
+    description: merchantProfile?.description || "",
     profileImage: merchantProfile?.profile_image_url || "",
     backgroundImage: merchantProfile?.background_image_url || "",
-    location: "Location not set",
-    phone: "Phone not set",
-    email: "Email not set",
-    website: "",
-    operatingHours: "Mon-Sat: 8:00 AM - 6:00 PM",
-    category: "General",
+    location: merchantProfile?.country_registered || "",
+    phone: merchantProfile?.phone_number || "",
+    email: merchantProfile?.email || "",
+    operatingHours: "",
   });
+
+  // Tags state
+  const [allTags, setAllTags] = useState<MerchantTag[]>([]);
+  const [selectedTags, setSelectedTags] = useState<MerchantTag[]>([]);
+  const [loadingTags, setLoadingTags] = useState(true);
+
+  // Fetch all available tags and merchant's selected tags
+  useEffect(() => {
+    const fetchTags = async () => {
+      setLoadingTags(true);
+      try {
+        // Fetch all available tags
+        const { data: tagsData } = await supabase
+          .from("merchant_tags")
+          .select("*")
+          .order("name");
+        
+        setAllTags(tagsData || []);
+
+        // Fetch merchant's selected tags if we have a profile
+        if (merchantProfile?.id) {
+          const { data: merchantTagsData } = await supabase
+            .from("merchant_profile_tags")
+            .select(`
+              tag_id,
+              merchant_tags (id, name)
+            `)
+            .eq("merchant_id", merchantProfile.id);
+
+          const tags = merchantTagsData?.map((t: any) => ({
+            id: t.merchant_tags.id,
+            name: t.merchant_tags.name
+          })) || [];
+          
+          setSelectedTags(tags);
+        }
+      } catch (error) {
+        console.error("Error fetching tags:", error);
+      } finally {
+        setLoadingTags(false);
+      }
+    };
+
+    fetchTags();
+  }, [merchantProfile?.id]);
 
   // Update shop profile when merchant profile loads
   useEffect(() => {
     if (merchantProfile) {
+      const opHours = merchantProfile.operating_hours as Record<string, string> | null;
       setShopProfile(prev => ({
         ...prev,
         name: merchantProfile.business_name,
+        description: merchantProfile.description || "",
         profileImage: merchantProfile.profile_image_url || "",
         backgroundImage: merchantProfile.background_image_url || "",
+        location: merchantProfile.country_registered || "",
+        phone: merchantProfile.phone_number || "",
+        email: merchantProfile.email || "",
+        operatingHours: opHours?.display || "",
       }));
       setEditedProfile(prev => ({
         ...prev,
         name: merchantProfile.business_name,
+        description: merchantProfile.description || "",
         profileImage: merchantProfile.profile_image_url || "",
         backgroundImage: merchantProfile.background_image_url || "",
+        location: merchantProfile.country_registered || "",
+        phone: merchantProfile.phone_number || "",
+        email: merchantProfile.email || "",
+        operatingHours: opHours?.display || "",
       }));
     }
   }, [merchantProfile]);
 
   const [editedProfile, setEditedProfile] = useState(shopProfile);
+  const [editedTags, setEditedTags] = useState<MerchantTag[]>([]);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+
+  // Sync editedTags when editing starts
+  useEffect(() => {
+    if (isEditingProfile) {
+      setEditedTags(selectedTags);
+    }
+  }, [isEditingProfile, selectedTags]);
 
   const merchantName = shopProfile.name;
   
@@ -989,16 +1056,55 @@ const MerchantDashboard = () => {
                   )}
                 </div>
 
+                {/* Business Tags */}
                 <div className="space-y-2">
-                  <Label>Category</Label>
+                  <Label className="flex items-center gap-2">
+                    <Tag className="w-4 h-4 text-muted-foreground" />
+                    Business Tags
+                  </Label>
                   {isEditingProfile ? (
-                    <Input
-                      value={editedProfile.category}
-                      onChange={(e) => setEditedProfile({ ...editedProfile, category: e.target.value })}
-                      placeholder="e.g., Building Materials"
-                    />
+                    <div className="space-y-3">
+                      {/* Selected tags */}
+                      <div className="flex flex-wrap gap-2">
+                        {editedTags.map((tag) => (
+                          <Badge key={tag.id} variant="secondary" className="flex items-center gap-1">
+                            {tag.name}
+                            <button
+                              type="button"
+                              onClick={() => setEditedTags(editedTags.filter(t => t.id !== tag.id))}
+                              className="ml-1 hover:text-destructive"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
+                      {/* Available tags to add */}
+                      <div className="flex flex-wrap gap-2">
+                        {allTags
+                          .filter(tag => !editedTags.some(t => t.id === tag.id))
+                          .map((tag) => (
+                            <Badge
+                              key={tag.id}
+                              variant="outline"
+                              className="cursor-pointer hover:bg-accent hover:text-accent-foreground"
+                              onClick={() => setEditedTags([...editedTags, tag])}
+                            >
+                              + {tag.name}
+                            </Badge>
+                          ))}
+                      </div>
+                    </div>
                   ) : (
-                    <Badge variant="secondary">{shopProfile.category}</Badge>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedTags.length > 0 ? (
+                        selectedTags.map((tag) => (
+                          <Badge key={tag.id} variant="secondary">{tag.name}</Badge>
+                        ))
+                      ) : (
+                        <span className="text-muted-foreground text-sm">No tags selected</span>
+                      )}
+                    </div>
                   )}
                 </div>
               </CardContent>
@@ -1060,21 +1166,6 @@ const MerchantDashboard = () => {
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      <Globe className="w-4 h-4 text-muted-foreground" />
-                      Website
-                    </Label>
-                    {isEditingProfile ? (
-                      <Input
-                        value={editedProfile.website}
-                        onChange={(e) => setEditedProfile({ ...editedProfile, website: e.target.value })}
-                        placeholder="Enter website URL"
-                      />
-                    ) : (
-                      <p className="text-foreground">{shopProfile.website || "Not set"}</p>
-                    )}
-                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -1089,7 +1180,7 @@ const MerchantDashboard = () => {
                       placeholder="e.g., Mon-Sat: 8:00 AM - 6:00 PM"
                     />
                   ) : (
-                    <p className="text-foreground">{shopProfile.operatingHours}</p>
+                    <p className="text-foreground">{shopProfile.operatingHours || "Not set"}</p>
                   )}
                 </div>
               </CardContent>
@@ -1103,6 +1194,7 @@ const MerchantDashboard = () => {
                     variant="outline"
                     onClick={() => {
                       setEditedProfile(shopProfile);
+                      setEditedTags(selectedTags);
                       setIsEditingProfile(false);
                     }}
                   >
@@ -1118,14 +1210,41 @@ const MerchantDashboard = () => {
                           .update({
                             profile_image_url: editedProfile.profileImage || null,
                             background_image_url: editedProfile.backgroundImage || null,
+                            description: editedProfile.description || null,
+                            phone_number: editedProfile.phone || null,
+                            email: editedProfile.email || null,
+                            operating_hours: editedProfile.operatingHours ? { display: editedProfile.operatingHours } : null,
                           })
                           .eq("id", merchantProfile.id);
                         
                         if (error) {
-                          toast.error("Failed to save profile images");
-                          console.error("Error saving profile images:", error);
+                          toast.error("Failed to save profile");
+                          console.error("Error saving profile:", error);
                           return;
                         }
+
+                        // Update tags - first delete existing, then add new
+                        await supabase
+                          .from("merchant_profile_tags")
+                          .delete()
+                          .eq("merchant_id", merchantProfile.id);
+
+                        if (editedTags.length > 0) {
+                          const tagInserts = editedTags.map(tag => ({
+                            merchant_id: merchantProfile.id,
+                            tag_id: tag.id
+                          }));
+                          
+                          const { error: tagError } = await supabase
+                            .from("merchant_profile_tags")
+                            .insert(tagInserts);
+
+                          if (tagError) {
+                            console.error("Error saving tags:", tagError);
+                          }
+                        }
+                        
+                        setSelectedTags(editedTags);
                       }
                       setShopProfile(editedProfile);
                       setIsEditingProfile(false);

@@ -14,7 +14,13 @@ interface MerchantProfile {
   approval_status: "pending" | "approved" | "rejected";
   profile_image_url: string | null;
   background_image_url: string | null;
+  phone_number: string | null;
+  email: string | null;
+  description: string | null;
+  operating_hours: unknown;
 }
+
+export type { MerchantProfile };
 
 export const useUserRole = () => {
   const { user } = useAuth();
