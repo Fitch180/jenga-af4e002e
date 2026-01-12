@@ -21,6 +21,10 @@ interface MerchantProfile {
   approval_status: string;
   profile_image_url: string | null;
   background_image_url: string | null;
+  phone_number: string | null;
+  email: string | null;
+  description: string | null;
+  tags?: { id: string; name: string }[];
 }
 
 interface Product {
@@ -59,7 +63,28 @@ const Index = () => {
           .eq("approval_status", "approved");
 
         if (merchantError) throw merchantError;
-        setMerchants(merchantData || []);
+
+        // Fetch tags for each merchant
+        const merchantsWithTags = await Promise.all(
+          (merchantData || []).map(async (merchant) => {
+            const { data: tagsData } = await supabase
+              .from("merchant_profile_tags")
+              .select(`
+                tag_id,
+                merchant_tags (id, name)
+              `)
+              .eq("merchant_id", merchant.id);
+
+            const tags = tagsData?.map((t: any) => ({
+              id: t.merchant_tags.id,
+              name: t.merchant_tags.name
+            })) || [];
+
+            return { ...merchant, tags };
+          })
+        );
+
+        setMerchants(merchantsWithTags);
 
         // Fetch products from approved merchants
         const { data: productData, error: productError } = await supabase
@@ -180,6 +205,8 @@ const Index = () => {
                     image={merchant.profile_image_url || ""}
                     isPinned={isMerchantPinned(merchant.id)}
                     onPin={() => toggleMerchantPin(merchant.id)}
+                    tags={merchant.tags}
+                    description={merchant.description || undefined}
                   />
                 </div>
               ))}

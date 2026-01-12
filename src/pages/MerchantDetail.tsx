@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin, Phone, Mail, MessageSquare, Loader2 } from "lucide-react";
+import { ArrowLeft, MapPin, Phone, Mail, MessageSquare, Loader2, Clock, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -21,6 +22,11 @@ interface MerchantProfile {
   approval_status: string;
   profile_image_url: string | null;
   background_image_url: string | null;
+  phone_number: string | null;
+  email: string | null;
+  description: string | null;
+  operating_hours: unknown;
+  tags?: { id: string; name: string }[];
 }
 
 interface Product {
@@ -63,7 +69,22 @@ const MerchantDetail = () => {
           .single();
 
         if (merchantError) throw merchantError;
-        setMerchant(merchantData);
+
+        // Fetch merchant tags
+        const { data: tagsData } = await supabase
+          .from("merchant_profile_tags")
+          .select(`
+            tag_id,
+            merchant_tags (id, name)
+          `)
+          .eq("merchant_id", id);
+
+        const tags = tagsData?.map((t: any) => ({
+          id: t.merchant_tags.id,
+          name: t.merchant_tags.name
+        })) || [];
+
+        setMerchant({ ...merchantData, tags });
 
         // Fetch merchant's products
         const { data: productData, error: productError } = await supabase
@@ -84,24 +105,11 @@ const MerchantDetail = () => {
     fetchMerchantData();
   }, [id]);
   
-  const getMerchantDescription = (category: string) => {
-    const descriptions: Record<string, string> = {
-      TILES: "Premium tiles supplier offering high-quality ceramic, porcelain, and designer tiles for residential and commercial projects.",
-      BUILDING: "Complete building materials and construction supplies. Quality products at competitive prices.",
-      FURNITURE: "Contemporary furniture designs for modern homes and offices. Custom orders available.",
-      LIGHTING: "Professional lighting solutions for residential and commercial spaces. Wide range of modern and classic designs.",
-      PAINTING: "Professional painting supplies and services. High-quality paints and tools for all your painting needs.",
-      PLUMBING: "Complete plumbing solutions and supplies. Quality fixtures and materials for all plumbing projects.",
-      FLOORING: "Premium flooring solutions including hardwood, laminate, vinyl, and specialty flooring options.",
-      ELECTRICAL: "Professional electrical supplies and solutions. Complete range of electrical materials and equipment.",
-      GARDENING: "Complete garden supplies and landscaping services. Tools, plants, and outdoor solutions.",
-      REPAIR: "Professional repair services and tools. Complete toolkit solutions for all maintenance needs.",
-      DECOR: "Beautiful home decor and interior design elements. Transform your space with our curated collection.",
-      CONTRACTORS: "Professional construction and contracting services. Reliable and quality workmanship.",
-      ARCHITECTS: "Professional architectural design and planning services. Innovative designs for modern living.",
-      ENGINEERS: "Structural and civil engineering services. Expert solutions for construction projects.",
-    };
-    return descriptions[category] || "Quality products and services for all your housing needs.";
+  const getOperatingHoursDisplay = (hours: unknown): string => {
+    if (!hours || typeof hours !== 'object') return "Contact for hours";
+    const hoursObj = hours as Record<string, string>;
+    if (hoursObj.display) return hoursObj.display;
+    return "Contact for hours";
   };
 
   if (loading) {
@@ -239,8 +247,18 @@ const MerchantDetail = () => {
           <div>
             <h2 className="text-3xl font-bold text-foreground mb-2">{merchant.business_name}</h2>
             <p className="text-muted-foreground leading-relaxed">
-              {getMerchantDescription("BUILDING")}
+              {merchant.description || "Quality products and services for all your needs."}
             </p>
+            {merchant.tags && merchant.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-3">
+                {merchant.tags.map((tag) => (
+                  <Badge key={tag.id} variant="secondary" className="flex items-center gap-1">
+                    <Tag className="w-3 h-3" />
+                    {tag.name}
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
               
           <Card className="p-6">
@@ -255,18 +273,28 @@ const MerchantDetail = () => {
                   View on Map
                 </button>
               </div>
-              <div className="flex items-center gap-3 text-foreground">
-                <Phone className="w-5 h-5 text-accent" />
-                <a href="tel:+255754123456" className="hover:text-accent transition-colors">
-                  +255 754 123 456
-                </a>
-              </div>
-              <div className="flex items-center gap-3 text-foreground">
-                <Mail className="w-5 h-5 text-accent" />
-                <a href={`mailto:info@${merchant.business_name.toLowerCase().replace(/\s+/g, '')}.co.tz`} className="hover:text-accent transition-colors">
-                  info@{merchant.business_name.toLowerCase().replace(/\s+/g, '')}.co.tz
-                </a>
-              </div>
+              {merchant.phone_number && (
+                <div className="flex items-center gap-3 text-foreground">
+                  <Phone className="w-5 h-5 text-accent" />
+                  <a href={`tel:${merchant.phone_number}`} className="hover:text-accent transition-colors">
+                    {merchant.phone_number}
+                  </a>
+                </div>
+              )}
+              {merchant.email && (
+                <div className="flex items-center gap-3 text-foreground">
+                  <Mail className="w-5 h-5 text-accent" />
+                  <a href={`mailto:${merchant.email}`} className="hover:text-accent transition-colors">
+                    {merchant.email}
+                  </a>
+                </div>
+              )}
+              {merchant.operating_hours && (
+                <div className="flex items-center gap-3 text-foreground">
+                  <Clock className="w-5 h-5 text-accent" />
+                  <span>{getOperatingHoursDisplay(merchant.operating_hours)}</span>
+                </div>
+              )}
             </div>
           </Card>
 

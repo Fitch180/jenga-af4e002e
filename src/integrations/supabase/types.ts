@@ -50,6 +50,42 @@ export type Database = {
         }
         Relationships: []
       }
+      merchant_profile_tags: {
+        Row: {
+          created_at: string
+          id: string
+          merchant_id: string
+          tag_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          merchant_id: string
+          tag_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          merchant_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "merchant_profile_tags_merchant_id_fkey"
+            columns: ["merchant_id"]
+            isOneToOne: false
+            referencedRelation: "merchant_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "merchant_profile_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "merchant_tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       merchant_profiles: {
         Row: {
           approval_status: Database["public"]["Enums"]["approval_status"]
@@ -58,8 +94,12 @@ export type Database = {
           business_registration_number: string | null
           country_registered: string
           created_at: string
+          description: string | null
+          email: string | null
           id: string
           national_id_number: string | null
+          operating_hours: Json | null
+          phone_number: string | null
           profile_image_url: string | null
           revenue_authority_number: string | null
           updated_at: string
@@ -72,8 +112,12 @@ export type Database = {
           business_registration_number?: string | null
           country_registered: string
           created_at?: string
+          description?: string | null
+          email?: string | null
           id?: string
           national_id_number?: string | null
+          operating_hours?: Json | null
+          phone_number?: string | null
           profile_image_url?: string | null
           revenue_authority_number?: string | null
           updated_at?: string
@@ -86,12 +130,34 @@ export type Database = {
           business_registration_number?: string | null
           country_registered?: string
           created_at?: string
+          description?: string | null
+          email?: string | null
           id?: string
           national_id_number?: string | null
+          operating_hours?: Json | null
+          phone_number?: string | null
           profile_image_url?: string | null
           revenue_authority_number?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      merchant_tags: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
         }
         Relationships: []
       }
