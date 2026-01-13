@@ -16,20 +16,24 @@ export const CATEGORIES = [
   "REPAIR",
 ];
 
-// Service-oriented categories (merchants offering services, not products)
+// Service-oriented categories (professional services, not physical products)
 export const SERVICE_CATEGORIES = [
   "ARCHITECTS",
   "ENGINEERS",
   "CONTRACTORS",
-  "LANDSCAPING",
-  "PLUMBERS",
-  "PAINTERS",
+  "PLUMBING",
+  "ELECTRICAL",
+  "PAINTING",
+  "GARDENING",
+  "REPAIR",
 ];
 
-// Empty arrays - real data will come from the database
-export const MERCHANTS: { id: number; name: string; location: string; category: string; image: string }[] = [];
-
-export const PRODUCTS: { id: string; merchantId: number; name: string; merchant: string; price: string; category: string; image: string; itemType?: "product" | "service" }[] = [];
-
-// Service data structure for when database tables are created
-export const SERVICES: { id: string; merchantId: number; name: string; merchant: string; price: string; category: string; image: string; description: string; itemType?: "product" | "service" }[] = [];
+// Product-oriented categories (physical goods)
+export const PRODUCT_CATEGORIES = [
+  "BUILDING",
+  "FLOORING",
+  "TILES",
+  "FURNITURE",
+  "LIGHTING",
+  "DECOR",
+];

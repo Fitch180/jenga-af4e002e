@@ -1,13 +1,8 @@
 import { useState } from "react";
-import { Pin, MapPin, Tag } from "lucide-react";
+import { Pin, MapPin } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-
-interface MerchantTag {
-  id: string;
-  name: string;
-}
 
 interface MerchantCardProps {
   name: string;
@@ -15,11 +10,11 @@ interface MerchantCardProps {
   image: string;
   isPinned?: boolean;
   onPin?: () => void;
-  tags?: MerchantTag[];
+  category?: string;
   description?: string;
 }
 
-export const MerchantCard = ({ name, location, image, isPinned, onPin, tags, description }: MerchantCardProps) => {
+export const MerchantCard = ({ name, location, image, isPinned, onPin, category, description }: MerchantCardProps) => {
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
 
@@ -66,6 +61,11 @@ export const MerchantCard = ({ name, location, image, isPinned, onPin, tags, des
         
         <div className="flex-1 space-y-2 min-w-0">
           <h3 className="font-semibold text-lg text-foreground">{name}</h3>
+          {category && (
+            <Badge variant="secondary" className="text-xs">
+              {category}
+            </Badge>
+          )}
           {description && (
             <p className="text-sm text-muted-foreground line-clamp-2">{description}</p>
           )}
@@ -73,20 +73,6 @@ export const MerchantCard = ({ name, location, image, isPinned, onPin, tags, des
             <MapPin className="w-4 h-4 flex-shrink-0" />
             <span className="truncate">{location}</span>
           </div>
-          {tags && tags.length > 0 && (
-            <div className="flex flex-wrap gap-1">
-              {tags.slice(0, 3).map((tag) => (
-                <Badge key={tag.id} variant="outline" className="text-xs py-0">
-                  {tag.name}
-                </Badge>
-              ))}
-              {tags.length > 3 && (
-                <Badge variant="outline" className="text-xs py-0">
-                  +{tags.length - 3}
-                </Badge>
-              )}
-            </div>
-          )}
           <button className="text-accent hover:text-accent/80 text-sm font-medium transition-colors">
             Get Direction
           </button>

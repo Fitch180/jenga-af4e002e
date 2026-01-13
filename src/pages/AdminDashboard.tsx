@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { MERCHANTS, PRODUCTS } from "@/data/mockData";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -85,10 +84,11 @@ const AdminDashboard = () => {
   const [isUserDialogOpen, setIsUserDialogOpen] = useState(false);
   const [allConversations, setAllConversations] = useState<Conversation[]>([]);
   const [conversationsLoading, setConversationsLoading] = useState(true);
+  const [totalProducts, setTotalProducts] = useState(0);
 
   const [stats, setStats] = useState({
-    totalMerchants: MERCHANTS.length,
-    totalProducts: PRODUCTS.length,
+    totalMerchants: 0,
+    totalProducts: 0,
     totalUsers: 0,
     totalRevenue: "45,680,000",
     pendingApprovals: 0,
@@ -203,10 +203,26 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchProducts = async () => {
+    try {
+      const { count, error } = await supabase
+        .from("products")
+        .select("*", { count: 'exact', head: true });
+
+      if (!error) {
+        setTotalProducts(count || 0);
+        setStats(prev => ({ ...prev, totalProducts: count || 0 }));
+      }
+    } catch (error) {
+      console.error("Error fetching products count:", error);
+    }
+  };
+
   useEffect(() => {
     fetchMerchants();
     fetchUsers();
     fetchConversations();
+    fetchProducts();
   }, []);
 
   const handleApprove = async (merchantId: string) => {
@@ -653,27 +669,18 @@ const AdminDashboard = () => {
 
           <TabsContent value="products" className="space-y-4 mt-6">
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-bold text-foreground">All Products ({PRODUCTS.length})</h2>
+              <h2 className="text-xl font-bold text-foreground">All Products ({totalProducts})</h2>
               <Button variant="outline">View All</Button>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {PRODUCTS.slice(0, 6).map((product) => (
-                <Card key={product.id} className="p-4">
-                  <div className="flex gap-3">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-20 h-20 object-cover rounded-lg"
-                    />
-                    <div>
-                      <p className="font-semibold text-foreground text-sm">{product.name}</p>
-                      <p className="text-xs text-muted-foreground">{product.merchant}</p>
-                      <p className="font-bold text-accent text-sm mt-1">{product.price}</p>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
+            <Card className="p-8 text-center">
+              <Package className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
+              <p className="text-muted-foreground">
+                {totalProducts} products in the system
+              </p>
+              <p className="text-sm text-muted-foreground mt-2">
+                View products on the main marketplace page
+              </p>
+            </Card>
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-4 mt-6">

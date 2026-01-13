@@ -92,6 +92,7 @@ export type Database = {
           background_image_url: string | null
           business_name: string
           business_registration_number: string | null
+          category: string | null
           country_registered: string
           created_at: string
           description: string | null
@@ -110,6 +111,7 @@ export type Database = {
           background_image_url?: string | null
           business_name: string
           business_registration_number?: string | null
+          category?: string | null
           country_registered: string
           created_at?: string
           description?: string | null
@@ -128,6 +130,7 @@ export type Database = {
           background_image_url?: string | null
           business_name?: string
           business_registration_number?: string | null
+          category?: string | null
           country_registered?: string
           created_at?: string
           description?: string | null
