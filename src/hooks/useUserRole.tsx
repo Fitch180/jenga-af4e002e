@@ -18,6 +18,7 @@ interface MerchantProfile {
   email: string | null;
   description: string | null;
   operating_hours: unknown;
+  category: string | null;
 }
 
 export type { MerchantProfile };

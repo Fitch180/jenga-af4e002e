@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
-import { Search, X, MapPin, Filter } from "lucide-react";
-import { CATEGORIES, MERCHANTS, PRODUCTS } from "@/data/mockData";
+import { Search, X, MapPin, Filter, Loader2 } from "lucide-react";
+import { CATEGORIES } from "@/data/mockData";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 interface SearchFilterDialogProps {
   open: boolean;
@@ -16,7 +17,24 @@ interface SearchFilterDialogProps {
   type: "merchants" | "products";
 }
 
-const LOCATIONS = [...new Set(MERCHANTS.map(m => m.location))];
+interface Merchant {
+  id: string;
+  business_name: string;
+  country_registered: string;
+  profile_image_url: string | null;
+  category: string | null;
+}
+
+interface Product {
+  id: string;
+  name: string;
+  price: number | null;
+  category: string;
+  image_url: string | null;
+  merchant_profiles?: {
+    business_name: string;
+  };
+}
 
 const SearchFilterDialog = ({ open, onOpenChange, type }: SearchFilterDialogProps) => {
   const navigate = useNavigate();
@@ -24,32 +42,73 @@ const SearchFilterDialog = ({ open, onOpenChange, type }: SearchFilterDialogProp
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedLocation, setSelectedLocation] = useState("All");
   const [priceRange, setPriceRange] = useState([0, 3000000]);
+  const [loading, setLoading] = useState(false);
+  const [merchants, setMerchants] = useState<Merchant[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [locations, setLocations] = useState<string[]>([]);
 
   const categories = CATEGORIES;
 
-  const parsePrice = (price: string) => {
-    return parseInt(price.replace(/,/g, "").replace(" Tsh", ""));
-  };
+  // Fetch data when dialog opens
+  useEffect(() => {
+    if (!open) return;
+
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        if (type === "merchants") {
+          const { data, error } = await supabase
+            .from("merchant_profiles")
+            .select("id, business_name, country_registered, profile_image_url, category")
+            .eq("approval_status", "approved");
+
+          if (!error && data) {
+            setMerchants(data);
+            const uniqueLocations = [...new Set(data.map(m => m.country_registered).filter(Boolean))];
+            setLocations(uniqueLocations);
+          }
+        } else {
+          const { data, error } = await supabase
+            .from("products")
+            .select(`
+              id, name, price, category, image_url,
+              merchant_profiles (business_name)
+            `)
+            .eq("is_active", true);
+
+          if (!error && data) {
+            setProducts(data);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [open, type]);
 
   const filteredResults = useMemo(() => {
     if (type === "merchants") {
-      return MERCHANTS.filter(merchant => {
-        const matchesSearch = merchant.name.toLowerCase().includes(searchQuery.toLowerCase());
+      return merchants.filter(merchant => {
+        const matchesSearch = merchant.business_name.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesCategory = selectedCategory === "All" || merchant.category === selectedCategory;
-        const matchesLocation = selectedLocation === "All" || merchant.location === selectedLocation;
+        const matchesLocation = selectedLocation === "All" || merchant.country_registered === selectedLocation;
         return matchesSearch && matchesCategory && matchesLocation;
       });
     } else {
-      return PRODUCTS.filter(product => {
+      return products.filter(product => {
         const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                              product.merchant.toLowerCase().includes(searchQuery.toLowerCase());
+                              product.merchant_profiles?.business_name.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesCategory = selectedCategory === "All" || product.category === selectedCategory;
-        const price = parsePrice(product.price);
+        const price = product.price || 0;
         const matchesPrice = price >= priceRange[0] && price <= priceRange[1];
         return matchesSearch && matchesCategory && matchesPrice;
       });
     }
-  }, [type, searchQuery, selectedCategory, selectedLocation, priceRange]);
+  }, [type, searchQuery, selectedCategory, selectedLocation, priceRange, merchants, products]);
 
   const handleReset = () => {
     setSearchQuery("");
@@ -58,7 +117,7 @@ const SearchFilterDialog = ({ open, onOpenChange, type }: SearchFilterDialogProp
     setPriceRange([0, 3000000]);
   };
 
-  const handleResultClick = (id: string | number) => {
+  const handleResultClick = (id: string) => {
     onOpenChange(false);
     if (type === "merchants") {
       navigate(`/merchant/${id}`);
@@ -137,7 +196,7 @@ const SearchFilterDialog = ({ open, onOpenChange, type }: SearchFilterDialogProp
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="All">All Locations</SelectItem>
-                    {LOCATIONS.map((loc) => (
+                    {locations.map((loc) => (
                       <SelectItem key={loc} value={loc}>
                         {loc}
                       </SelectItem>
@@ -173,38 +232,85 @@ const SearchFilterDialog = ({ open, onOpenChange, type }: SearchFilterDialogProp
 
         {/* Results */}
         <div className="flex-1 overflow-y-auto mt-4 space-y-2 min-h-0 max-h-[40vh]">
-          {filteredResults.length === 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-accent" />
+            </div>
+          ) : filteredResults.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               No {type} found matching your criteria
             </div>
           ) : (
-            filteredResults.slice(0, 20).map((item) => (
-              <div
-                key={item.id}
-                className="flex items-center gap-3 p-3 rounded-lg bg-card border border-border hover:bg-muted/50 cursor-pointer transition-colors"
-                onClick={() => handleResultClick(item.id)}
-              >
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="w-12 h-12 rounded-lg object-cover"
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-foreground truncate">{item.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {type === "merchants" 
-                      ? `${(item as typeof MERCHANTS[0]).location} • ${(item as typeof MERCHANTS[0]).category}`
-                      : `${(item as typeof PRODUCTS[0]).merchant} • ${(item as typeof PRODUCTS[0]).price}`
-                    }
-                  </p>
-                </div>
-                {type === "products" && (
-                  <Badge variant="secondary">
-                    {(item as typeof PRODUCTS[0]).category}
-                  </Badge>
-                )}
-              </div>
-            ))
+            filteredResults.slice(0, 20).map((item) => {
+              if (type === "merchants") {
+                const merchant = item as Merchant;
+                return (
+                  <div
+                    key={merchant.id}
+                    className="flex items-center gap-3 p-3 rounded-lg bg-card border border-border hover:bg-muted/50 cursor-pointer transition-colors"
+                    onClick={() => handleResultClick(merchant.id)}
+                  >
+                    {merchant.profile_image_url ? (
+                      <img
+                        src={merchant.profile_image_url}
+                        alt={merchant.business_name}
+                        className="w-12 h-12 rounded-lg object-cover"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
+                        <span className="text-lg font-bold text-muted-foreground">
+                          {merchant.business_name.charAt(0)}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-foreground truncate">{merchant.business_name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {merchant.country_registered}
+                        {merchant.category && ` • ${merchant.category}`}
+                      </p>
+                    </div>
+                    {merchant.category && (
+                      <Badge variant="secondary">
+                        {merchant.category}
+                      </Badge>
+                    )}
+                  </div>
+                );
+              } else {
+                const product = item as Product;
+                return (
+                  <div
+                    key={product.id}
+                    className="flex items-center gap-3 p-3 rounded-lg bg-card border border-border hover:bg-muted/50 cursor-pointer transition-colors"
+                    onClick={() => handleResultClick(product.id)}
+                  >
+                    {product.image_url ? (
+                      <img
+                        src={product.image_url}
+                        alt={product.name}
+                        className="w-12 h-12 rounded-lg object-cover"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
+                        <span className="text-lg font-bold text-muted-foreground">
+                          {product.name.charAt(0)}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-foreground truncate">{product.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {product.merchant_profiles?.business_name} • {product.price?.toLocaleString() || "Quote"} Tsh
+                      </p>
+                    </div>
+                    <Badge variant="secondary">
+                      {product.category}
+                    </Badge>
+                  </div>
+                );
+              }
+            })
           )}
         </div>
       </DialogContent>

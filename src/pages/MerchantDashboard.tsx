@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Package, ShoppingCart, TrendingUp, Plus, Edit, Trash2, FileText, Upload, Send, MessageSquare, Settings, MapPin, Phone, Mail, Globe, Clock, Truck, CheckCircle, XCircle, DollarSign, Tag, X } from "lucide-react";
+import { ArrowLeft, Package, ShoppingCart, TrendingUp, Plus, Edit, Trash2, FileText, Upload, Send, MessageSquare, Settings, MapPin, Phone, Mail, Globe, Clock, Truck, CheckCircle, XCircle, DollarSign, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import ProductFormDialog from "@/components/merchant/ProductFormDialog";
 import DeleteConfirmDialog from "@/components/merchant/DeleteConfirmDialog";
@@ -21,11 +22,7 @@ import { useMerchantOrders, OrderStatus } from "@/hooks/useOrders";
 import { useMerchantQuotations, QuotationStatus } from "@/hooks/useQuotations";
 import { ImageUpload } from "@/components/ImageUpload";
 import { supabase } from "@/integrations/supabase/client";
-
-interface MerchantTag {
-  id: string;
-  name: string;
-}
+import { CATEGORIES } from "@/data/mockData";
 
 const MerchantDashboard = () => {
   const navigate = useNavigate();
@@ -69,52 +66,8 @@ const MerchantDashboard = () => {
     phone: merchantProfile?.phone_number || "",
     email: merchantProfile?.email || "",
     operatingHours: "",
+    category: merchantProfile?.category || "",
   });
-
-  // Tags state
-  const [allTags, setAllTags] = useState<MerchantTag[]>([]);
-  const [selectedTags, setSelectedTags] = useState<MerchantTag[]>([]);
-  const [loadingTags, setLoadingTags] = useState(true);
-
-  // Fetch all available tags and merchant's selected tags
-  useEffect(() => {
-    const fetchTags = async () => {
-      setLoadingTags(true);
-      try {
-        // Fetch all available tags
-        const { data: tagsData } = await supabase
-          .from("merchant_tags")
-          .select("*")
-          .order("name");
-        
-        setAllTags(tagsData || []);
-
-        // Fetch merchant's selected tags if we have a profile
-        if (merchantProfile?.id) {
-          const { data: merchantTagsData } = await supabase
-            .from("merchant_profile_tags")
-            .select(`
-              tag_id,
-              merchant_tags (id, name)
-            `)
-            .eq("merchant_id", merchantProfile.id);
-
-          const tags = merchantTagsData?.map((t: any) => ({
-            id: t.merchant_tags.id,
-            name: t.merchant_tags.name
-          })) || [];
-          
-          setSelectedTags(tags);
-        }
-      } catch (error) {
-        console.error("Error fetching tags:", error);
-      } finally {
-        setLoadingTags(false);
-      }
-    };
-
-    fetchTags();
-  }, [merchantProfile?.id]);
 
   // Update shop profile when merchant profile loads
   useEffect(() => {
@@ -130,6 +83,7 @@ const MerchantDashboard = () => {
         phone: merchantProfile.phone_number || "",
         email: merchantProfile.email || "",
         operatingHours: opHours?.display || "",
+        category: merchantProfile.category || "",
       }));
       setEditedProfile(prev => ({
         ...prev,
@@ -141,20 +95,13 @@ const MerchantDashboard = () => {
         phone: merchantProfile.phone_number || "",
         email: merchantProfile.email || "",
         operatingHours: opHours?.display || "",
+        category: merchantProfile.category || "",
       }));
     }
   }, [merchantProfile]);
 
   const [editedProfile, setEditedProfile] = useState(shopProfile);
-  const [editedTags, setEditedTags] = useState<MerchantTag[]>([]);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
-
-  // Sync editedTags when editing starts
-  useEffect(() => {
-    if (isEditingProfile) {
-      setEditedTags(selectedTags);
-    }
-  }, [isEditingProfile, selectedTags]);
 
   const merchantName = shopProfile.name;
   
@@ -1056,55 +1003,32 @@ const MerchantDashboard = () => {
                   )}
                 </div>
 
-                {/* Business Tags */}
+                {/* Business Category */}
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
                     <Tag className="w-4 h-4 text-muted-foreground" />
-                    Business Tags
+                    Business Category
                   </Label>
                   {isEditingProfile ? (
-                    <div className="space-y-3">
-                      {/* Selected tags */}
-                      <div className="flex flex-wrap gap-2">
-                        {editedTags.map((tag) => (
-                          <Badge key={tag.id} variant="secondary" className="flex items-center gap-1">
-                            {tag.name}
-                            <button
-                              type="button"
-                              onClick={() => setEditedTags(editedTags.filter(t => t.id !== tag.id))}
-                              className="ml-1 hover:text-destructive"
-                            >
-                              <X className="w-3 h-3" />
-                            </button>
-                          </Badge>
+                    <Select
+                      value={editedProfile.category}
+                      onValueChange={(value) => setEditedProfile({ ...editedProfile, category: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CATEGORIES.filter(c => c !== "All").map((cat) => (
+                          <SelectItem key={cat} value={cat}>
+                            {cat}
+                          </SelectItem>
                         ))}
-                      </div>
-                      {/* Available tags to add */}
-                      <div className="flex flex-wrap gap-2">
-                        {allTags
-                          .filter(tag => !editedTags.some(t => t.id === tag.id))
-                          .map((tag) => (
-                            <Badge
-                              key={tag.id}
-                              variant="outline"
-                              className="cursor-pointer hover:bg-accent hover:text-accent-foreground"
-                              onClick={() => setEditedTags([...editedTags, tag])}
-                            >
-                              + {tag.name}
-                            </Badge>
-                          ))}
-                      </div>
-                    </div>
+                      </SelectContent>
+                    </Select>
                   ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {selectedTags.length > 0 ? (
-                        selectedTags.map((tag) => (
-                          <Badge key={tag.id} variant="secondary">{tag.name}</Badge>
-                        ))
-                      ) : (
-                        <span className="text-muted-foreground text-sm">No tags selected</span>
-                      )}
-                    </div>
+                    <Badge variant="secondary">
+                      {shopProfile.category || "Not set"}
+                    </Badge>
                   )}
                 </div>
               </CardContent>
