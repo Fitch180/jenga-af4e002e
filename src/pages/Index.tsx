@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Pin, Loader2 } from "lucide-react";
+import { Search, Pin, Loader2, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { MerchantCard } from "@/components/MerchantCard";
 import { ProductCard } from "@/components/ProductCard";
 import { CategoryFilter } from "@/components/CategoryFilter";
@@ -46,6 +47,7 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState("merchants");
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const { isMerchantPinned, isProductPinned, toggleMerchantPin, toggleProductPin } = usePinned();
 
   const [merchants, setMerchants] = useState<MerchantProfile[]>([]);
@@ -111,9 +113,12 @@ const Index = () => {
       );
     }
 
-    const filteredMerchants = activeCategory === "All" 
-      ? merchants 
-      : merchants.filter(m => m.category === activeCategory);
+    const filteredMerchants = merchants.filter(m => {
+      const matchesCategory = activeCategory === "All" || m.category === activeCategory;
+      const matchesSearch = searchQuery === "" || 
+        m.business_name.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesCategory && matchesSearch;
+    });
 
     const filteredProducts = activeCategory === "All"
       ? products
@@ -125,6 +130,25 @@ const Index = () => {
     if (activeTab === "merchants") {
       return (
         <div className="space-y-6">
+          {/* Search Bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search merchants by name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-10 bg-card border-border"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-muted flex items-center justify-center hover:bg-muted-foreground/20 transition-colors"
+              >
+                <X className="w-3 h-3 text-muted-foreground" />
+              </button>
+            )}
+          </div>
           {pinnedMerchantsList.length > 0 && (
             <div>
               <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
