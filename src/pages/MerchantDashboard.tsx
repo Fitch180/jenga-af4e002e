@@ -1118,7 +1118,6 @@ const MerchantDashboard = () => {
                     variant="outline"
                     onClick={() => {
                       setEditedProfile(shopProfile);
-                      setEditedTags(selectedTags);
                       setIsEditingProfile(false);
                     }}
                   >
@@ -1138,6 +1137,7 @@ const MerchantDashboard = () => {
                             phone_number: editedProfile.phone || null,
                             email: editedProfile.email || null,
                             operating_hours: editedProfile.operatingHours ? { display: editedProfile.operatingHours } : null,
+                            category: editedProfile.category || null,
                           })
                           .eq("id", merchantProfile.id);
                         
@@ -1147,28 +1147,6 @@ const MerchantDashboard = () => {
                           return;
                         }
 
-                        // Update tags - first delete existing, then add new
-                        await supabase
-                          .from("merchant_profile_tags")
-                          .delete()
-                          .eq("merchant_id", merchantProfile.id);
-
-                        if (editedTags.length > 0) {
-                          const tagInserts = editedTags.map(tag => ({
-                            merchant_id: merchantProfile.id,
-                            tag_id: tag.id
-                          }));
-                          
-                          const { error: tagError } = await supabase
-                            .from("merchant_profile_tags")
-                            .insert(tagInserts);
-
-                          if (tagError) {
-                            console.error("Error saving tags:", tagError);
-                          }
-                        }
-                        
-                        setSelectedTags(editedTags);
                       }
                       setShopProfile(editedProfile);
                       setIsEditingProfile(false);
