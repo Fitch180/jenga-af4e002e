@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin, Phone, Mail, MessageSquare, Loader2, Clock, Tag } from "lucide-react";
+import { ArrowLeft, MapPin, Phone, Mail, MessageSquare, Loader2, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -26,7 +26,7 @@ interface MerchantProfile {
   email: string | null;
   description: string | null;
   operating_hours: unknown;
-  tags?: { id: string; name: string }[];
+  category: string | null;
 }
 
 interface Product {
@@ -70,21 +70,7 @@ const MerchantDetail = () => {
 
         if (merchantError) throw merchantError;
 
-        // Fetch merchant tags
-        const { data: tagsData } = await supabase
-          .from("merchant_profile_tags")
-          .select(`
-            tag_id,
-            merchant_tags (id, name)
-          `)
-          .eq("merchant_id", id);
-
-        const tags = tagsData?.map((t: any) => ({
-          id: t.merchant_tags.id,
-          name: t.merchant_tags.name
-        })) || [];
-
-        setMerchant({ ...merchantData, tags });
+        setMerchant(merchantData);
 
         // Fetch merchant's products
         const { data: productData, error: productError } = await supabase
@@ -245,20 +231,17 @@ const MerchantDetail = () => {
         {/* Merchant Info */}
         <div className="px-4 pt-20 pb-6 space-y-6">
           <div>
-            <h2 className="text-3xl font-bold text-foreground mb-2">{merchant.business_name}</h2>
+            <div className="flex items-center gap-3 mb-2">
+              <h2 className="text-3xl font-bold text-foreground">{merchant.business_name}</h2>
+              {merchant.category && (
+                <Badge className="bg-accent text-accent-foreground text-sm px-3 py-1">
+                  {merchant.category}
+                </Badge>
+              )}
+            </div>
             <p className="text-muted-foreground leading-relaxed">
               {merchant.description || "Quality products and services for all your needs."}
             </p>
-            {merchant.tags && merchant.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-3">
-                {merchant.tags.map((tag) => (
-                  <Badge key={tag.id} variant="secondary" className="flex items-center gap-1">
-                    <Tag className="w-3 h-3" />
-                    {tag.name}
-                  </Badge>
-                ))}
-              </div>
-            )}
           </div>
               
           <Card className="p-6">
