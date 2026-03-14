@@ -70,7 +70,7 @@ export function useDeliveryTracking(orderId: string | null) {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) return false;
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("order_status_history")
         .insert({
           order_id: orderIdParam,

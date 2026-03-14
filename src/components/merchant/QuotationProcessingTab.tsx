@@ -216,10 +216,10 @@ export default function QuotationProcessingTab({
 
                 {/* Accepted quotation */}
                 {quotation.status === "accepted" && quotation.quoted_price && (
-                  <div className="border-t pt-3 bg-green-500/10 -mx-4 px-4 py-3 -mb-4 rounded-b-lg">
+                  <div className="border-t pt-3 bg-accent/10 -mx-4 px-4 py-3 -mb-4 rounded-b-lg">
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-600" />
-                      <p className="text-sm font-medium text-green-700">Accepted by Customer</p>
+                      <CheckCircle className="w-4 h-4 text-accent" />
+                      <p className="text-sm font-medium text-accent">Accepted by Customer</p>
                     </div>
                     <p className="text-lg font-bold text-accent mt-1">{quotation.quoted_price.toLocaleString()} Tsh</p>
                   </div>

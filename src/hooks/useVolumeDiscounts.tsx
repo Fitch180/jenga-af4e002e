@@ -87,7 +87,7 @@ export function useMerchantVolumeDiscounts(merchantId: string | null) {
 
   const removeDiscount = async (discountId: string): Promise<boolean> => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("volume_discounts")
         .delete()
         .eq("id", discountId);

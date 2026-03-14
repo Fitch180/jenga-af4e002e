@@ -20,7 +20,7 @@ const VolumeDiscountBadge = ({ productId, basePrice, quantity = 1, showTiers = f
     <div className="space-y-2">
       {/* Active discount badge */}
       {tier && quantity >= tier.min_quantity && (
-        <div className="bg-green-500/10 text-green-700 dark:text-green-400 px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1">
+        <div className="bg-accent/10 text-accent px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1">
           <Tag className="w-3 h-3" />
           Bulk discount: {discountPercentage}% off — {discountedPrice.toLocaleString()} Tsh/unit
         </div>
