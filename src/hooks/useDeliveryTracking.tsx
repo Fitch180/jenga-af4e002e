@@ -24,7 +24,7 @@ export function useDeliveryTracking(orderId: string | null) {
 
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("order_status_history")
         .select("*")
         .eq("order_id", orderId)
