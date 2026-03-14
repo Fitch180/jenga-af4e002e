@@ -30,7 +30,7 @@ export function useVolumeDiscounts(productId: string | null) {
 
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("volume_discounts")
         .select("*")
         .eq("product_id", productId)
