@@ -182,6 +182,16 @@ export default function ProductDetail() {
 
           <div className="text-3xl font-bold text-accent">{displayPrice}</div>
 
+          {/* Volume Discounts */}
+          {product.price && (
+            <VolumeDiscountBadge
+              productId={product.id}
+              basePrice={product.price}
+              quantity={quantity}
+              showTiers={true}
+            />
+          )}
+
           {product.description && (
             <div className="pt-4 border-t border-border">
               <p className="text-foreground leading-relaxed">{product.description}</p>
