@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useOrders, OrderStatus } from "@/hooks/useOrders";
 import OrderTracker from "@/components/OrderTracker";
+import DeliveryTracker from "@/components/DeliveryTracker";
 
 const OrderDetail = () => {
   const { id } = useParams();
@@ -130,6 +131,17 @@ const OrderDetail = () => {
               <h3 className="font-semibold text-foreground">Order Tracking</h3>
               <OrderTracker status={order.status} updatedAt={new Date(order.updated_at)} />
             </div>
+          )}
+
+          {/* Delivery Timeline */}
+          {(order.status === "processing" || order.status === "shipped" || order.status === "delivered") && (
+            <>
+              <Separator />
+              <div className="space-y-4">
+                <h3 className="font-semibold text-foreground">Delivery Updates</h3>
+                <DeliveryTracker orderId={order.id} status={order.status} trackingNumber={order.tracking_number} />
+              </div>
+            </>
           )}
         </Card>
 

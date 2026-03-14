@@ -15,6 +15,9 @@ import { toast } from "sonner";
 import ProductFormDialog from "@/components/merchant/ProductFormDialog";
 import DeleteConfirmDialog from "@/components/merchant/DeleteConfirmDialog";
 import BulkUploadDialog from "@/components/merchant/BulkUploadDialog";
+import OrderProcessingTab from "@/components/merchant/OrderProcessingTab";
+import QuotationProcessingTab from "@/components/merchant/QuotationProcessingTab";
+import VolumeDiscountManager from "@/components/merchant/VolumeDiscountManager";
 import { useMerchantChat } from "@/hooks/useMerchantChat";
 import { useProducts, Product, ProductFormData } from "@/hooks/useProducts";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -125,16 +128,6 @@ const MerchantDashboard = () => {
   const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // Order processing states
-  const [deliveryFeeDialogOpen, setDeliveryFeeDialogOpen] = useState(false);
-  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-  const [deliveryFeeInput, setDeliveryFeeInput] = useState("");
-
-  // Quotation response states
-  const [quotationResponseOpen, setQuotationResponseOpen] = useState(false);
-  const [selectedQuotationId, setSelectedQuotationId] = useState<string | null>(null);
-  const [quotationPrice, setQuotationPrice] = useState("");
-  const [quotationMessage, setQuotationMessage] = useState("");
 
   // Calculate stats from real data
   const stats = {
@@ -224,77 +217,6 @@ const MerchantDashboard = () => {
   };
 
   const selectedConv = conversations.find((c) => c.id === selectedConversation);
-
-  // Order processing functions
-  const handleSetDeliveryFee = (orderId: string) => {
-    setSelectedOrderId(orderId);
-    setDeliveryFeeInput("");
-    setDeliveryFeeDialogOpen(true);
-  };
-
-  const handleConfirmDeliveryFee = async () => {
-    if (!selectedOrderId || !deliveryFeeInput) return;
-    const fee = parseFloat(deliveryFeeInput);
-    if (isNaN(fee) || fee < 0) {
-      toast.error("Please enter a valid delivery fee");
-      return;
-    }
-    await updateDeliveryFee(selectedOrderId, fee);
-    setDeliveryFeeDialogOpen(false);
-    setSelectedOrderId(null);
-  };
-
-  const handleProcessOrder = async (orderId: string, status: OrderStatus) => {
-    await updateOrderStatus(orderId, status);
-  };
-
-  // Quotation processing functions
-  const handleRespondToQuotation = (quotationId: string) => {
-    setSelectedQuotationId(quotationId);
-    setQuotationPrice("");
-    setQuotationMessage("");
-    setQuotationResponseOpen(true);
-  };
-
-  const handleConfirmQuotationResponse = async () => {
-    if (!selectedQuotationId || !quotationPrice) return;
-    const price = parseFloat(quotationPrice);
-    if (isNaN(price) || price < 0) {
-      toast.error("Please enter a valid price");
-      return;
-    }
-    await respondToQuotation(selectedQuotationId, {
-      price,
-      message: quotationMessage,
-      validDays: 7,
-    });
-    setQuotationResponseOpen(false);
-    setSelectedQuotationId(null);
-  };
-
-  const getOrderStatusBadge = (status: string) => {
-    const variants: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
-      pending: "outline",
-      confirmed: "secondary",
-      processing: "secondary",
-      shipped: "default",
-      delivered: "default",
-      cancelled: "destructive",
-    };
-    return variants[status] || "outline";
-  };
-
-  const getQuotationStatusBadge = (status: string) => {
-    const variants: Record<string, "default" | "secondary" | "outline" | "destructive"> = {
-      pending: "outline",
-      reviewed: "secondary",
-      quoted: "default",
-      accepted: "default",
-      rejected: "destructive",
-      expired: "secondary",
-    };
-    return variants[status] || "outline";
-  };
 
   return (
     <div className="min-h-screen bg-background pb-6">
@@ -498,256 +420,22 @@ const MerchantDashboard = () => {
 
           {/* Orders Tab */}
           <TabsContent value="orders" className="space-y-4 mt-6">
-            <h2 className="text-xl font-bold text-foreground">Customer Orders</h2>
-            <div className="space-y-3">
-              {ordersLoading ? (
-                <Card className="p-8 text-center">
-                  <ShoppingCart className="w-12 h-12 mx-auto text-muted-foreground mb-3 animate-pulse" />
-                  <p className="text-muted-foreground">Loading orders...</p>
-                </Card>
-              ) : orders.length === 0 ? (
-                <Card className="p-8 text-center">
-                  <ShoppingCart className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
-                  <p className="text-muted-foreground">No orders yet.</p>
-                </Card>
-              ) : (
-                orders.map((order) => (
-                  <Card key={order.id} className="p-4">
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-semibold text-foreground">Order #{order.id.slice(0, 8)}</p>
-                          <p className="text-sm text-muted-foreground">{order.delivery_full_name}</p>
-                          <p className="text-sm text-muted-foreground">{order.delivery_phone}</p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {new Date(order.created_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <Badge variant={getOrderStatusBadge(order.status)}>
-                            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                          </Badge>
-                          <p className="font-bold text-foreground mt-2">
-                            {order.total_amount.toLocaleString()} Tsh
-                          </p>
-                          {order.delivery_fee > 0 && (
-                            <p className="text-xs text-muted-foreground">
-                              (incl. {order.delivery_fee.toLocaleString()} Tsh delivery)
-                            </p>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Order Items */}
-                      <div className="border-t pt-3">
-                        <p className="text-sm font-medium text-foreground mb-2">Items:</p>
-                        <div className="space-y-1">
-                          {order.order_items?.map((item) => (
-                            <div key={item.id} className="flex justify-between text-sm">
-                              <span className="text-muted-foreground">
-                                {item.product_name} x {item.quantity}
-                              </span>
-                              <span className="text-foreground">
-                                {item.price.toLocaleString()} Tsh
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Delivery Address */}
-                      <div className="border-t pt-3">
-                        <p className="text-sm font-medium text-foreground mb-1">Delivery:</p>
-                        <p className="text-sm text-muted-foreground">
-                          {order.delivery_street}, {order.delivery_district}, {order.delivery_region}
-                        </p>
-                      </div>
-
-                      {/* Action Buttons */}
-                      <div className="flex flex-wrap gap-2 border-t pt-3">
-                        {order.status === "pending" && (
-                          <>
-                            {order.delivery_fee === 0 && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleSetDeliveryFee(order.id)}
-                              >
-                                <DollarSign className="w-4 h-4 mr-1" />
-                                Set Delivery Fee
-                              </Button>
-                            )}
-                            <Button
-                              size="sm"
-                              className="bg-accent hover:bg-accent/90 text-accent-foreground"
-                              onClick={() => handleProcessOrder(order.id, "confirmed")}
-                            >
-                              <CheckCircle className="w-4 h-4 mr-1" />
-                              Confirm Order
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => handleProcessOrder(order.id, "cancelled")}
-                            >
-                              <XCircle className="w-4 h-4 mr-1" />
-                              Cancel
-                            </Button>
-                          </>
-                        )}
-                        {order.status === "confirmed" && (
-                          <Button
-                            size="sm"
-                            className="bg-accent hover:bg-accent/90 text-accent-foreground"
-                            onClick={() => handleProcessOrder(order.id, "processing")}
-                          >
-                            <Package className="w-4 h-4 mr-1" />
-                            Start Processing
-                          </Button>
-                        )}
-                        {order.status === "processing" && (
-                          <Button
-                            size="sm"
-                            className="bg-accent hover:bg-accent/90 text-accent-foreground"
-                            onClick={() => handleProcessOrder(order.id, "shipped")}
-                          >
-                            <Truck className="w-4 h-4 mr-1" />
-                            Mark as Shipped
-                          </Button>
-                        )}
-                        {order.status === "shipped" && (
-                          <Button
-                            size="sm"
-                            className="bg-accent hover:bg-accent/90 text-accent-foreground"
-                            onClick={() => handleProcessOrder(order.id, "delivered")}
-                          >
-                            <CheckCircle className="w-4 h-4 mr-1" />
-                            Mark as Delivered
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </Card>
-                ))
-              )}
-            </div>
+            <OrderProcessingTab
+              orders={orders}
+              loading={ordersLoading}
+              updateOrderStatus={updateOrderStatus}
+              updateDeliveryFee={updateDeliveryFee}
+            />
           </TabsContent>
 
           {/* Quotations Tab */}
           <TabsContent value="quotations" className="space-y-4 mt-6">
-            <h2 className="text-xl font-bold text-foreground">Quotation Requests</h2>
-            <div className="space-y-3">
-              {quotationsLoading ? (
-                <Card className="p-8 text-center">
-                  <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-3 animate-pulse" />
-                  <p className="text-muted-foreground">Loading quotations...</p>
-                </Card>
-              ) : quotations.length === 0 ? (
-                <Card className="p-8 text-center">
-                  <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
-                  <p className="text-muted-foreground">No quotation requests yet.</p>
-                </Card>
-              ) : (
-                quotations.map((quotation) => (
-                  <Card key={quotation.id} className="p-4">
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-semibold text-foreground">Quotation #{quotation.id.slice(0, 8)}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {new Date(quotation.created_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                        <Badge variant={getQuotationStatusBadge(quotation.status)}>
-                          {quotation.status.charAt(0).toUpperCase() + quotation.status.slice(1)}
-                        </Badge>
-                      </div>
-
-                      {/* Message */}
-                      {quotation.message && (
-                        <div className="bg-muted p-3 rounded-lg">
-                          <p className="text-sm text-foreground">{quotation.message}</p>
-                        </div>
-                      )}
-
-                      {/* Quotation Items */}
-                      <div className="border-t pt-3">
-                        <p className="text-sm font-medium text-foreground mb-2">Requested Items:</p>
-                        <div className="space-y-2">
-                          {quotation.quotation_items?.map((item) => (
-                            <div key={item.id} className="text-sm">
-                              <div className="flex justify-between">
-                                <span className="font-medium text-foreground">
-                                  {item.product_name} x {item.quantity}
-                                </span>
-                              </div>
-                              {item.specifications && (
-                                <p className="text-muted-foreground text-xs">
-                                  Specs: {item.specifications}
-                                </p>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Response (if quoted) */}
-                      {quotation.status === "quoted" && quotation.quoted_price && (
-                        <div className="border-t pt-3 bg-accent/10 -mx-4 px-4 py-3 -mb-4 rounded-b-lg">
-                          <p className="text-sm font-medium text-foreground">Your Quote:</p>
-                          <p className="text-lg font-bold text-accent">
-                            {quotation.quoted_price.toLocaleString()} Tsh
-                          </p>
-                          {quotation.merchant_response && (
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {quotation.merchant_response}
-                            </p>
-                          )}
-                          {quotation.valid_until && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Valid until: {new Date(quotation.valid_until).toLocaleDateString()}
-                            </p>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Action Buttons */}
-                      {quotation.status === "pending" && (
-                        <div className="flex gap-2 border-t pt-3">
-                          <Button
-                            size="sm"
-                            onClick={() => updateQuotationStatus(quotation.id, "reviewed")}
-                            variant="outline"
-                          >
-                            Mark as Reviewed
-                          </Button>
-                          <Button
-                            size="sm"
-                            className="bg-accent hover:bg-accent/90 text-accent-foreground"
-                            onClick={() => handleRespondToQuotation(quotation.id)}
-                          >
-                            <Send className="w-4 h-4 mr-1" />
-                            Send Quote
-                          </Button>
-                        </div>
-                      )}
-                      {quotation.status === "reviewed" && (
-                        <div className="flex gap-2 border-t pt-3">
-                          <Button
-                            size="sm"
-                            className="bg-accent hover:bg-accent/90 text-accent-foreground"
-                            onClick={() => handleRespondToQuotation(quotation.id)}
-                          >
-                            <Send className="w-4 h-4 mr-1" />
-                            Send Quote
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  </Card>
-                ))
-              )}
-            </div>
+            <QuotationProcessingTab
+              quotations={quotations}
+              loading={quotationsLoading}
+              respondToQuotation={respondToQuotation}
+              updateQuotationStatus={updateQuotationStatus}
+            />
           </TabsContent>
 
           {/* Messages Tab */}
@@ -1193,76 +881,6 @@ const MerchantDashboard = () => {
         onUpload={handleBulkUpload}
       />
 
-      {/* Delivery Fee Dialog */}
-      <Dialog open={deliveryFeeDialogOpen} onOpenChange={setDeliveryFeeDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Set Delivery Fee</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Delivery Fee (Tsh)</Label>
-              <Input
-                type="number"
-                placeholder="Enter delivery fee"
-                value={deliveryFeeInput}
-                onChange={(e) => setDeliveryFeeInput(e.target.value)}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeliveryFeeDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              className="bg-accent hover:bg-accent/90 text-accent-foreground"
-              onClick={handleConfirmDeliveryFee}
-            >
-              Set Fee & Notify Customer
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Quotation Response Dialog */}
-      <Dialog open={quotationResponseOpen} onOpenChange={setQuotationResponseOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Send Quotation</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Quoted Price (Tsh)</Label>
-              <Input
-                type="number"
-                placeholder="Enter quoted price"
-                value={quotationPrice}
-                onChange={(e) => setQuotationPrice(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Message to Customer</Label>
-              <Textarea
-                placeholder="Add any notes or terms..."
-                value={quotationMessage}
-                onChange={(e) => setQuotationMessage(e.target.value)}
-                rows={3}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setQuotationResponseOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              className="bg-accent hover:bg-accent/90 text-accent-foreground"
-              onClick={handleConfirmQuotationResponse}
-            >
-              Send Quotation
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import VolumeDiscountBadge from "@/components/VolumeDiscountBadge";
 
 interface Product {
   id: string;
@@ -180,6 +181,16 @@ export default function ProductDetail() {
           </div>
 
           <div className="text-3xl font-bold text-accent">{displayPrice}</div>
+
+          {/* Volume Discounts */}
+          {product.price && (
+            <VolumeDiscountBadge
+              productId={product.id}
+              basePrice={product.price}
+              quantity={quantity}
+              showTiers={true}
+            />
+          )}
 
           {product.description && (
             <div className="pt-4 border-t border-border">
