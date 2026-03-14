@@ -132,6 +132,17 @@ const OrderDetail = () => {
               <OrderTracker status={order.status} updatedAt={new Date(order.updated_at)} />
             </div>
           )}
+
+          {/* Delivery Timeline */}
+          {(order.status === "processing" || order.status === "shipped" || order.status === "delivered") && (
+            <>
+              <Separator />
+              <div className="space-y-4">
+                <h3 className="font-semibold text-foreground">Delivery Updates</h3>
+                <DeliveryTracker orderId={order.id} status={order.status} trackingNumber={order.tracking_number} />
+              </div>
+            </>
+          )}
         </Card>
 
         {/* Order Items */}
