@@ -128,11 +128,6 @@ const MerchantDashboard = () => {
   const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // Quotation response states
-  const [quotationResponseOpen, setQuotationResponseOpen] = useState(false);
-  const [selectedQuotationId, setSelectedQuotationId] = useState<string | null>(null);
-  const [quotationPrice, setQuotationPrice] = useState("");
-  const [quotationMessage, setQuotationMessage] = useState("");
 
   // Calculate stats from real data
   const stats = {

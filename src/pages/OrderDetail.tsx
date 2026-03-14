@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useOrders, OrderStatus } from "@/hooks/useOrders";
 import OrderTracker from "@/components/OrderTracker";
+import DeliveryTracker from "@/components/DeliveryTracker";
 
 const OrderDetail = () => {
   const { id } = useParams();
