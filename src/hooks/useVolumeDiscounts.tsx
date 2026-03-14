@@ -63,7 +63,7 @@ export function useMerchantVolumeDiscounts(merchantId: string | null) {
   ): Promise<boolean> => {
     try {
       setLoading(true);
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("volume_discounts")
         .insert({
           product_id: productId,
