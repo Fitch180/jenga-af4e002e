@@ -128,11 +128,6 @@ const MerchantDashboard = () => {
   const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // Order processing states
-  const [deliveryFeeDialogOpen, setDeliveryFeeDialogOpen] = useState(false);
-  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-  const [deliveryFeeInput, setDeliveryFeeInput] = useState("");
-
   // Quotation response states
   const [quotationResponseOpen, setQuotationResponseOpen] = useState(false);
   const [selectedQuotationId, setSelectedQuotationId] = useState<string | null>(null);
