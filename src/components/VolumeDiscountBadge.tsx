@@ -40,7 +40,7 @@ const VolumeDiscountBadge = ({ productId, basePrice, quantity = 1, showTiers = f
           <p className="text-xs font-medium text-muted-foreground">Volume Pricing:</p>
           {discounts.map((d) => {
             const isActive = tier?.id === d.id;
-            const unitPrice = d.discounted_price || Math.round(basePrice * (1 - d.discount_percentage / 100));
+            const unitPrice = Math.round(basePrice * (1 - d.discount_percentage / 100));
             return (
               <div
                 key={d.id}

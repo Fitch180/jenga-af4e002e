@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { CATEGORIES, SERVICE_CATEGORIES } from "@/data/mockData";
 import { Product, ProductFormData } from "@/hooks/useProducts";
 import { MultiImageUpload } from "@/components/ImageUpload";
+import VolumeDiscountManager from "@/components/merchant/VolumeDiscountManager";
 
 interface ProductFormDialogProps {
   open: boolean;
@@ -251,6 +252,16 @@ const ProductFormDialog = ({ open, onOpenChange, product, onSave, saving }: Prod
               maxLength={1000}
             />
           </div>
+
+          {/* Volume Discounts - only for existing products with a price */}
+          {product?.id && formData.price && !isService && (
+            <div className="border-t pt-4">
+              <VolumeDiscountManager
+                productId={product.id}
+                basePrice={parseFloat(formData.price) || null}
+              />
+            </div>
+          )}
 
           <div className="flex items-center justify-between border-t pt-4">
             <div className="space-y-0.5">
