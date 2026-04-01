@@ -79,7 +79,7 @@ export const ProductCard = ({ id, name, price, priceDisplay, merchant, merchantI
         >
           <Pin className={`w-4 h-4 ${isPinned ? 'fill-jenga-orange text-jenga-orange' : 'text-background'}`} />
         </button>
-        {itemType === "service" ? (
+        {isService ? (
           <Button
             size="sm"
             onClick={handleRequestQuotation}
