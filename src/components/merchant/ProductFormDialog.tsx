@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { CATEGORIES, SERVICE_CATEGORIES } from "@/data/mockData";
 import { Product, ProductFormData } from "@/hooks/useProducts";
 import { MultiImageUpload } from "@/components/ImageUpload";
+import VolumeDiscountManager from "@/components/merchant/VolumeDiscountManager";
 
 interface ProductFormDialogProps {
   open: boolean;
