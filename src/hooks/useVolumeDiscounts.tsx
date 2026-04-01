@@ -5,17 +5,15 @@ import { toast } from "sonner";
 export interface VolumeDiscount {
   id: string;
   product_id: string;
-  merchant_id: string;
   min_quantity: number;
   discount_percentage: number;
-  discounted_price: number | null;
   created_at: string;
+  updated_at: string;
 }
 
 export interface VolumeDiscountInput {
   min_quantity: number;
   discount_percentage: number;
-  discounted_price?: number;
 }
 
 export function useVolumeDiscounts(productId: string | null) {
@@ -53,12 +51,11 @@ export function useVolumeDiscounts(productId: string | null) {
   return { discounts, loading, refetch: fetchDiscounts };
 }
 
-export function useMerchantVolumeDiscounts(merchantId: string | null) {
+export function useMerchantVolumeDiscounts() {
   const [loading, setLoading] = useState(false);
 
   const addDiscount = async (
     productId: string,
-    merchantIdParam: string,
     input: VolumeDiscountInput
   ): Promise<boolean> => {
     try {
@@ -67,10 +64,8 @@ export function useMerchantVolumeDiscounts(merchantId: string | null) {
         .from("volume_discounts")
         .insert({
           product_id: productId,
-          merchant_id: merchantIdParam,
           min_quantity: input.min_quantity,
           discount_percentage: input.discount_percentage,
-          discounted_price: input.discounted_price || null,
         });
 
       if (error) throw error;
@@ -115,7 +110,6 @@ export function getApplicableDiscount(
     return { discountedPrice: basePrice, discountPercentage: 0, tier: null };
   }
 
-  // Find the highest tier the quantity qualifies for
   const applicableTiers = discounts
     .filter((d) => quantity >= d.min_quantity)
     .sort((a, b) => b.min_quantity - a.min_quantity);
@@ -125,15 +119,6 @@ export function getApplicableDiscount(
   }
 
   const bestTier = applicableTiers[0];
-  
-  if (bestTier.discounted_price !== null) {
-    return {
-      discountedPrice: bestTier.discounted_price,
-      discountPercentage: bestTier.discount_percentage,
-      tier: bestTier,
-    };
-  }
-
   const discountedPrice = basePrice * (1 - bestTier.discount_percentage / 100);
   return {
     discountedPrice: Math.round(discountedPrice),
