@@ -37,9 +37,11 @@ export const ProductCard = ({ id, name, price, priceDisplay, merchant, merchantI
     setImageError(true);
   };
   
+  const isService = itemType === "service";
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!price) {
+    if (isService || !price) {
       toast.error("This item requires a quotation request");
       return;
     }
