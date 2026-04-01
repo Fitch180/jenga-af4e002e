@@ -90,8 +90,10 @@ export default function ProductDetail() {
     ? `${product.price.toLocaleString()} Tsh` 
     : "Request Quote";
 
+  const isService = product.item_type === "service";
+
   const handleAddToCart = () => {
-    if (!product.price) {
+    if (isService || !product.price) {
       toast.error("This item requires a quotation request");
       return;
     }
