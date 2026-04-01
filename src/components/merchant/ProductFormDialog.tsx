@@ -253,6 +253,16 @@ const ProductFormDialog = ({ open, onOpenChange, product, onSave, saving }: Prod
             />
           </div>
 
+          {/* Volume Discounts - only for existing products with a price */}
+          {product?.id && formData.price && !isService && (
+            <div className="border-t pt-4">
+              <VolumeDiscountManager
+                productId={product.id}
+                basePrice={parseFloat(formData.price) || null}
+              />
+            </div>
+          )}
+
           <div className="flex items-center justify-between border-t pt-4">
             <div className="space-y-0.5">
               <Label htmlFor="is_active">Active</Label>
