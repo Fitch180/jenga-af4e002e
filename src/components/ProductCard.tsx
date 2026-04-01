@@ -37,9 +37,11 @@ export const ProductCard = ({ id, name, price, priceDisplay, merchant, merchantI
     setImageError(true);
   };
   
+  const isService = itemType === "service";
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!price) {
+    if (isService || !price) {
       toast.error("This item requires a quotation request");
       return;
     }
@@ -77,7 +79,7 @@ export const ProductCard = ({ id, name, price, priceDisplay, merchant, merchantI
         >
           <Pin className={`w-4 h-4 ${isPinned ? 'fill-jenga-orange text-jenga-orange' : 'text-background'}`} />
         </button>
-        {itemType === "service" ? (
+        {isService ? (
           <Button
             size="sm"
             onClick={handleRequestQuotation}

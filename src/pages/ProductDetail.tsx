@@ -90,8 +90,10 @@ export default function ProductDetail() {
     ? `${product.price.toLocaleString()} Tsh` 
     : "Request Quote";
 
+  const isService = product.item_type === "service";
+
   const handleAddToCart = () => {
-    if (!product.price) {
+    if (isService || !product.price) {
       toast.error("This item requires a quotation request");
       return;
     }
@@ -212,8 +214,8 @@ export default function ProductDetail() {
             </div>
           )}
 
-          {/* Quantity Selector - Only for products with price */}
-          {product.price && (
+          {/* Quantity Selector - Only for products with price (not services) */}
+          {product.price && !isService && (
             <div className="pt-4 border-t border-border">
               <p className="text-sm text-muted-foreground mb-3">Quantity</p>
               <div className="flex items-center gap-4">
@@ -241,21 +243,21 @@ export default function ProductDetail() {
             </div>
           )}
 
-          {/* Add to Cart Button */}
-          {product.price ? (
+          {/* Add to Cart or Request Quotation */}
+          {isService || !product.price ? (
+            <Button
+              onClick={() => navigate(`/merchant/${product.merchant_id}`)}
+              className="w-full bg-accent hover:bg-accent/90 text-accent-foreground h-12 text-lg"
+            >
+              Request Quotation
+            </Button>
+          ) : (
             <Button
               onClick={handleAddToCart}
               className="w-full bg-accent hover:bg-accent/90 text-accent-foreground h-12 text-lg"
             >
               <ShoppingCart className="w-5 h-5 mr-2" />
               Add to Cart
-            </Button>
-          ) : (
-            <Button
-              onClick={() => navigate(`/merchant/${product.merchant_id}`)}
-              className="w-full bg-accent hover:bg-accent/90 text-accent-foreground h-12 text-lg"
-            >
-              Request Quotation
             </Button>
           )}
         </Card>
