@@ -247,12 +247,22 @@ export default function ProductDetail() {
 
           {/* Add to Cart or Request Quotation */}
           {isService || !product.price ? (
-            <Button
-              onClick={() => navigate(`/merchant/${product.merchant_id}`)}
-              className="w-full bg-accent hover:bg-accent/90 text-accent-foreground h-12 text-lg"
-            >
-              Request Quotation
-            </Button>
+            <>
+              <Button
+                onClick={() => setQuotationDialogOpen(true)}
+                className="w-full bg-accent hover:bg-accent/90 text-accent-foreground h-12 text-lg"
+              >
+                Request Quotation
+              </Button>
+              <QuotationRequestDialog
+                open={quotationDialogOpen}
+                onOpenChange={setQuotationDialogOpen}
+                productName={product.name}
+                productId={product.id}
+                merchantId={product.merchant_id}
+                merchantName={product.merchant_profiles?.business_name || "Unknown"}
+              />
+            </>
           ) : (
             <Button
               onClick={handleAddToCart}
