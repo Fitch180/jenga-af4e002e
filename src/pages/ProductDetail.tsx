@@ -35,6 +35,7 @@ export default function ProductDetail() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+  const [quotationDialogOpen, setQuotationDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
