@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import VolumeDiscountBadge from "@/components/VolumeDiscountBadge";
 import QuotationRequestDialog from "@/components/QuotationRequestDialog";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Product {
   id: string;
@@ -31,6 +32,7 @@ export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart, totalItems } = useCart();
+  const { user } = useAuth();
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [product, setProduct] = useState<Product | null>(null);
@@ -95,6 +97,11 @@ export default function ProductDetail() {
   const isService = product.item_type === "service";
 
   const handleAddToCart = () => {
+    if (!user) {
+      toast.error("Please login to add items to cart");
+      navigate("/auth");
+      return;
+    }
     if (isService || !product.price) {
       toast.error("This item requires a quotation request");
       return;

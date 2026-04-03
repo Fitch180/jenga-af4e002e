@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import QuotationRequestDialog from "@/components/QuotationRequestDialog";
 
@@ -24,6 +25,7 @@ interface ProductCardProps {
 export const ProductCard = ({ id, name, price, priceDisplay, merchant, merchantId, image, isPinned, onPin, itemType = "product" }: ProductCardProps) => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { user } = useAuth();
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
   const [quotationDialogOpen, setQuotationDialogOpen] = useState(false);
@@ -43,6 +45,11 @@ export const ProductCard = ({ id, name, price, priceDisplay, merchant, merchantI
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!user) {
+      toast.error("Please login to add items to cart");
+      navigate("/auth");
+      return;
+    }
     if (isService || !price) {
       toast.error("This item requires a quotation request");
       return;
@@ -61,6 +68,11 @@ export const ProductCard = ({ id, name, price, priceDisplay, merchant, merchantI
 
   const handleRequestQuotation = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!user) {
+      toast.error("Please login to request a quotation");
+      navigate("/auth");
+      return;
+    }
     setQuotationDialogOpen(true);
   };
   
