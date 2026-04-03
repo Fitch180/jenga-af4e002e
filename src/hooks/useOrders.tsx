@@ -340,11 +340,31 @@ export function useMerchantOrders(merchantId: string | null) {
     }
   };
 
+  const updateTrackingNumber = async (orderId: string, trackingNumber: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from("orders")
+        .update({ tracking_number: trackingNumber })
+        .eq("id", orderId);
+
+      if (error) throw error;
+
+      toast.success("Tracking number updated!");
+      fetchOrders();
+      return true;
+    } catch (error: any) {
+      console.error("Error updating tracking number:", error);
+      toast.error("Failed to update tracking number");
+      return false;
+    }
+  };
+
   return {
     orders,
     loading,
     updateOrderStatus,
     updateDeliveryFee,
+    updateTrackingNumber,
     refetch: fetchOrders,
   };
 }

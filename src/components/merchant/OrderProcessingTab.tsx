@@ -18,6 +18,7 @@ interface OrderProcessingTabProps {
   loading: boolean;
   updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<boolean>;
   updateDeliveryFee: (orderId: string, fee: number) => Promise<boolean>;
+  updateTrackingNumber?: (orderId: string, trackingNumber: string) => Promise<boolean>;
 }
 
 const STATUS_FILTERS = [
@@ -47,6 +48,7 @@ export default function OrderProcessingTab({
   loading,
   updateOrderStatus,
   updateDeliveryFee,
+  updateTrackingNumber,
 }: OrderProcessingTabProps) {
   const [statusFilter, setStatusFilter] = useState("all");
   const [deliveryFeeDialogOpen, setDeliveryFeeDialogOpen] = useState(false);
@@ -56,6 +58,9 @@ export default function OrderProcessingTab({
   const [trackingOrderId, setTrackingOrderId] = useState<string | null>(null);
   const [trackingNote, setTrackingNote] = useState("");
   const [trackingLocation, setTrackingLocation] = useState("");
+  const [trackingNumberDialogOpen, setTrackingNumberDialogOpen] = useState(false);
+  const [trackingNumberInput, setTrackingNumberInput] = useState("");
+  const [trackingNumberOrderId, setTrackingNumberOrderId] = useState<string | null>(null);
   const [orderDetailOpen, setOrderDetailOpen] = useState(false);
   const [detailOrder, setDetailOrder] = useState<Order | null>(null);
 
@@ -122,6 +127,18 @@ export default function OrderProcessingTab({
   const handleViewDetail = (order: Order) => {
     setDetailOrder(order);
     setOrderDetailOpen(true);
+  };
+
+  const handleSetTrackingNumber = (orderId: string, currentNumber: string | null) => {
+    setTrackingNumberOrderId(orderId);
+    setTrackingNumberInput(currentNumber || "");
+    setTrackingNumberDialogOpen(true);
+  };
+
+  const handleConfirmTrackingNumber = async () => {
+    if (!trackingNumberOrderId || !trackingNumberInput.trim() || !updateTrackingNumber) return;
+    await updateTrackingNumber(trackingNumberOrderId, trackingNumberInput.trim());
+    setTrackingNumberDialogOpen(false);
   };
 
   if (loading) {
@@ -277,14 +294,22 @@ export default function OrderProcessingTab({
                     </Button>
                   )}
                   {order.status === "processing" && (
-                    <Button
-                      size="sm"
-                      className="bg-accent hover:bg-accent/90 text-accent-foreground"
-                      onClick={() => handleProcessOrder(order.id, "shipped")}
-                    >
-                      <Truck className="w-4 h-4 mr-1" />
-                      Mark Shipped
-                    </Button>
+                    <>
+                      <Button
+                        size="sm"
+                        className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                        onClick={() => handleProcessOrder(order.id, "shipped")}
+                      >
+                        <Truck className="w-4 h-4 mr-1" />
+                        Mark Shipped
+                      </Button>
+                      {updateTrackingNumber && (
+                        <Button size="sm" variant="outline" onClick={() => handleSetTrackingNumber(order.id, order.tracking_number)}>
+                          <Truck className="w-4 h-4 mr-1" />
+                          {order.tracking_number ? "Update Tracking #" : "Set Tracking #"}
+                        </Button>
+                      )}
+                    </>
                   )}
                   {order.status === "shipped" && (
                     <>
@@ -300,6 +325,12 @@ export default function OrderProcessingTab({
                         <MapPin className="w-4 h-4 mr-1" />
                         Add Tracking Update
                       </Button>
+                      {updateTrackingNumber && (
+                        <Button size="sm" variant="outline" onClick={() => handleSetTrackingNumber(order.id, order.tracking_number)}>
+                          <Truck className="w-4 h-4 mr-1" />
+                          Update Tracking #
+                        </Button>
+                      )}
                     </>
                   )}
                   {(order.status === "processing" || order.status === "shipped") && (
@@ -378,6 +409,38 @@ export default function OrderProcessingTab({
               disabled={!trackingNote.trim()}
             >
               Add Update
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Tracking Number Dialog */}
+      <Dialog open={trackingNumberDialogOpen} onOpenChange={setTrackingNumberDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Set Tracking Number</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Tracking Number</Label>
+              <Input
+                placeholder="e.g., TRK-2026-ABC123"
+                value={trackingNumberInput}
+                onChange={(e) => setTrackingNumberInput(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                This number will be visible to the customer for tracking their delivery.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTrackingNumberDialogOpen(false)}>Cancel</Button>
+            <Button
+              className="bg-accent hover:bg-accent/90 text-accent-foreground"
+              onClick={handleConfirmTrackingNumber}
+              disabled={!trackingNumberInput.trim()}
+            >
+              Save Tracking Number
             </Button>
           </DialogFooter>
         </DialogContent>

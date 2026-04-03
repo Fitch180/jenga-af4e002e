@@ -49,6 +49,7 @@ const MerchantDashboard = () => {
     loading: ordersLoading,
     updateOrderStatus,
     updateDeliveryFee,
+    updateTrackingNumber,
   } = useMerchantOrders(merchantProfile?.id || null);
 
   // Quotations hook - uses real database
@@ -425,6 +426,7 @@ const MerchantDashboard = () => {
               loading={ordersLoading}
               updateOrderStatus={updateOrderStatus}
               updateDeliveryFee={updateDeliveryFee}
+              updateTrackingNumber={updateTrackingNumber}
             />
           </TabsContent>
 

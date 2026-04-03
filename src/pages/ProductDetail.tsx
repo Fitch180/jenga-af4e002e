@@ -8,6 +8,7 @@ import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import VolumeDiscountBadge from "@/components/VolumeDiscountBadge";
+import QuotationRequestDialog from "@/components/QuotationRequestDialog";
 
 interface Product {
   id: string;
@@ -34,6 +35,7 @@ export default function ProductDetail() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+  const [quotationDialogOpen, setQuotationDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -245,12 +247,22 @@ export default function ProductDetail() {
 
           {/* Add to Cart or Request Quotation */}
           {isService || !product.price ? (
-            <Button
-              onClick={() => navigate(`/merchant/${product.merchant_id}`)}
-              className="w-full bg-accent hover:bg-accent/90 text-accent-foreground h-12 text-lg"
-            >
-              Request Quotation
-            </Button>
+            <>
+              <Button
+                onClick={() => setQuotationDialogOpen(true)}
+                className="w-full bg-accent hover:bg-accent/90 text-accent-foreground h-12 text-lg"
+              >
+                Request Quotation
+              </Button>
+              <QuotationRequestDialog
+                open={quotationDialogOpen}
+                onOpenChange={setQuotationDialogOpen}
+                productName={product.name}
+                productId={product.id}
+                merchantId={product.merchant_id}
+                merchantName={product.merchant_profiles?.business_name || "Unknown"}
+              />
+            </>
           ) : (
             <Button
               onClick={handleAddToCart}
