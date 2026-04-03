@@ -97,6 +97,11 @@ export default function ProductDetail() {
   const isService = product.item_type === "service";
 
   const handleAddToCart = () => {
+    if (!user) {
+      toast.error("Please login to add items to cart");
+      navigate("/auth");
+      return;
+    }
     if (isService || !product.price) {
       toast.error("This item requires a quotation request");
       return;
