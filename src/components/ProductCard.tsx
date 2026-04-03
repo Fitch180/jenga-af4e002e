@@ -25,6 +25,7 @@ interface ProductCardProps {
 export const ProductCard = ({ id, name, price, priceDisplay, merchant, merchantId, image, isPinned, onPin, itemType = "product" }: ProductCardProps) => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { user } = useAuth();
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
   const [quotationDialogOpen, setQuotationDialogOpen] = useState(false);
