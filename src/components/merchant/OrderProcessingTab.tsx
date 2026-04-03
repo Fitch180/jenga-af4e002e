@@ -48,6 +48,7 @@ export default function OrderProcessingTab({
   loading,
   updateOrderStatus,
   updateDeliveryFee,
+  updateTrackingNumber,
 }: OrderProcessingTabProps) {
   const [statusFilter, setStatusFilter] = useState("all");
   const [deliveryFeeDialogOpen, setDeliveryFeeDialogOpen] = useState(false);
@@ -57,6 +58,9 @@ export default function OrderProcessingTab({
   const [trackingOrderId, setTrackingOrderId] = useState<string | null>(null);
   const [trackingNote, setTrackingNote] = useState("");
   const [trackingLocation, setTrackingLocation] = useState("");
+  const [trackingNumberDialogOpen, setTrackingNumberDialogOpen] = useState(false);
+  const [trackingNumberInput, setTrackingNumberInput] = useState("");
+  const [trackingNumberOrderId, setTrackingNumberOrderId] = useState<string | null>(null);
   const [orderDetailOpen, setOrderDetailOpen] = useState(false);
   const [detailOrder, setDetailOrder] = useState<Order | null>(null);
 
