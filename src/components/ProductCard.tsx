@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
+import QuotationRequestDialog from "@/components/QuotationRequestDialog";
 
 interface ProductCardProps {
   id: string;
