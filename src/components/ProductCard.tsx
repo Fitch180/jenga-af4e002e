@@ -68,6 +68,11 @@ export const ProductCard = ({ id, name, price, priceDisplay, merchant, merchantI
 
   const handleRequestQuotation = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!user) {
+      toast.error("Please login to request a quotation");
+      navigate("/auth");
+      return;
+    }
     setQuotationDialogOpen(true);
   };
   
