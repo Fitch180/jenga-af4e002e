@@ -414,6 +414,38 @@ export default function OrderProcessingTab({
         </DialogContent>
       </Dialog>
 
+      {/* Tracking Number Dialog */}
+      <Dialog open={trackingNumberDialogOpen} onOpenChange={setTrackingNumberDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Set Tracking Number</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Tracking Number</Label>
+              <Input
+                placeholder="e.g., TRK-2026-ABC123"
+                value={trackingNumberInput}
+                onChange={(e) => setTrackingNumberInput(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                This number will be visible to the customer for tracking their delivery.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setTrackingNumberDialogOpen(false)}>Cancel</Button>
+            <Button
+              className="bg-accent hover:bg-accent/90 text-accent-foreground"
+              onClick={handleConfirmTrackingNumber}
+              disabled={!trackingNumberInput.trim()}
+            >
+              Save Tracking Number
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Order Detail Dialog */}
       <Dialog open={orderDetailOpen} onOpenChange={setOrderDetailOpen}>
         <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
