@@ -129,6 +129,18 @@ export default function OrderProcessingTab({
     setOrderDetailOpen(true);
   };
 
+  const handleSetTrackingNumber = (orderId: string, currentNumber: string | null) => {
+    setTrackingNumberOrderId(orderId);
+    setTrackingNumberInput(currentNumber || "");
+    setTrackingNumberDialogOpen(true);
+  };
+
+  const handleConfirmTrackingNumber = async () => {
+    if (!trackingNumberOrderId || !trackingNumberInput.trim() || !updateTrackingNumber) return;
+    await updateTrackingNumber(trackingNumberOrderId, trackingNumberInput.trim());
+    setTrackingNumberDialogOpen(false);
+  };
+
   if (loading) {
     return (
       <Card className="p-8 text-center">
