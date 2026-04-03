@@ -45,6 +45,11 @@ export const ProductCard = ({ id, name, price, priceDisplay, merchant, merchantI
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!user) {
+      toast.error("Please login to add items to cart");
+      navigate("/auth");
+      return;
+    }
     if (isService || !price) {
       toast.error("This item requires a quotation request");
       return;
