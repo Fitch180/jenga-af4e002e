@@ -131,6 +131,15 @@ export const ProductCard = ({ id, name, price, priceDisplay, merchant, merchantI
           <p className="text-xl font-bold text-accent">{displayPrice}</p>
         </div>
       </div>
+
+      <QuotationRequestDialog
+        open={quotationDialogOpen}
+        onOpenChange={setQuotationDialogOpen}
+        productName={name}
+        productId={id}
+        merchantId={merchantId}
+        merchantName={merchant}
+      />
     </Card>
   );
 };
