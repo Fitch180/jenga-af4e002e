@@ -294,14 +294,22 @@ export default function OrderProcessingTab({
                     </Button>
                   )}
                   {order.status === "processing" && (
-                    <Button
-                      size="sm"
-                      className="bg-accent hover:bg-accent/90 text-accent-foreground"
-                      onClick={() => handleProcessOrder(order.id, "shipped")}
-                    >
-                      <Truck className="w-4 h-4 mr-1" />
-                      Mark Shipped
-                    </Button>
+                    <>
+                      <Button
+                        size="sm"
+                        className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                        onClick={() => handleProcessOrder(order.id, "shipped")}
+                      >
+                        <Truck className="w-4 h-4 mr-1" />
+                        Mark Shipped
+                      </Button>
+                      {updateTrackingNumber && (
+                        <Button size="sm" variant="outline" onClick={() => handleSetTrackingNumber(order.id, order.tracking_number)}>
+                          <Truck className="w-4 h-4 mr-1" />
+                          {order.tracking_number ? "Update Tracking #" : "Set Tracking #"}
+                        </Button>
+                      )}
+                    </>
                   )}
                   {order.status === "shipped" && (
                     <>
