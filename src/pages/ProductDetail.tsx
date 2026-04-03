@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import VolumeDiscountBadge from "@/components/VolumeDiscountBadge";
 import QuotationRequestDialog from "@/components/QuotationRequestDialog";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Product {
   id: string;
