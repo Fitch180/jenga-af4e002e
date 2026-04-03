@@ -8,6 +8,7 @@ import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import VolumeDiscountBadge from "@/components/VolumeDiscountBadge";
+import QuotationRequestDialog from "@/components/QuotationRequestDialog";
 
 interface Product {
   id: string;
