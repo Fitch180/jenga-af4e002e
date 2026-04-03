@@ -18,6 +18,7 @@ interface OrderProcessingTabProps {
   loading: boolean;
   updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<boolean>;
   updateDeliveryFee: (orderId: string, fee: number) => Promise<boolean>;
+  updateTrackingNumber?: (orderId: string, trackingNumber: string) => Promise<boolean>;
 }
 
 const STATUS_FILTERS = [
