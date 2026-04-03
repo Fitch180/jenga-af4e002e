@@ -26,6 +26,7 @@ export const ProductCard = ({ id, name, price, priceDisplay, merchant, merchantI
   const { addToCart } = useCart();
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
+  const [quotationDialogOpen, setQuotationDialogOpen] = useState(false);
 
   const displayPrice = priceDisplay || (price ? `${price.toLocaleString()} Tsh` : "Request Quote");
 
@@ -60,9 +61,7 @@ export const ProductCard = ({ id, name, price, priceDisplay, merchant, merchantI
 
   const handleRequestQuotation = (e: React.MouseEvent) => {
     e.stopPropagation();
-    toast.success("Quotation request sent!", {
-      description: `Your request for ${name} has been sent to ${merchant}`,
-    });
+    setQuotationDialogOpen(true);
   };
   
   return (
