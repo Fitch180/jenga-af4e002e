@@ -426,6 +426,7 @@ const MerchantDashboard = () => {
               loading={ordersLoading}
               updateOrderStatus={updateOrderStatus}
               updateDeliveryFee={updateDeliveryFee}
+              updateTrackingNumber={updateTrackingNumber}
             />
           </TabsContent>
 
