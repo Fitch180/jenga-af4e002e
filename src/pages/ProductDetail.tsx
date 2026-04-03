@@ -32,6 +32,7 @@ export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { addToCart, totalItems } = useCart();
+  const { user } = useAuth();
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState(0);
   const [product, setProduct] = useState<Product | null>(null);
