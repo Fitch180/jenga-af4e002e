@@ -325,6 +325,12 @@ export default function OrderProcessingTab({
                         <MapPin className="w-4 h-4 mr-1" />
                         Add Tracking Update
                       </Button>
+                      {updateTrackingNumber && (
+                        <Button size="sm" variant="outline" onClick={() => handleSetTrackingNumber(order.id, order.tracking_number)}>
+                          <Truck className="w-4 h-4 mr-1" />
+                          Update Tracking #
+                        </Button>
+                      )}
                     </>
                   )}
                   {(order.status === "processing" || order.status === "shipped") && (
