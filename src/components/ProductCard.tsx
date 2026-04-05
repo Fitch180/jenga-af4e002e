@@ -47,7 +47,7 @@ export const ProductCard = ({ id, name, price, priceDisplay, merchant, merchantI
     e.stopPropagation();
     if (!user) {
       toast.error("Please login to add items to cart");
-      navigate("/auth");
+      navigate(`/auth?redirect=${encodeURIComponent(window.location.pathname)}`);
       return;
     }
     if (isService || !price) {
@@ -70,7 +70,7 @@ export const ProductCard = ({ id, name, price, priceDisplay, merchant, merchantI
     e.stopPropagation();
     if (!user) {
       toast.error("Please login to request a quotation");
-      navigate("/auth");
+      navigate(`/auth?redirect=${encodeURIComponent(window.location.pathname)}`);
       return;
     }
     setQuotationDialogOpen(true);
