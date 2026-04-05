@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Search, Pin, Loader2 } from "lucide-react";
 import { MerchantCard } from "@/components/MerchantCard";
 import { ProductCard } from "@/components/ProductCard";
@@ -41,9 +41,17 @@ interface Product {
   };
 }
 
+const getHomeTabFromSearch = (search: string) => {
+  const tab = new URLSearchParams(search).get("tab");
+  return tab === "products" ? "products" : "merchants";
+};
+
 const Index = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("merchants");
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState(() =>
+    getHomeTabFromSearch(typeof window === "undefined" ? "" : window.location.search)
+  );
   const [activeCategory, setActiveCategory] = useState("All");
   const [searchOpen, setSearchOpen] = useState(false);
   const { isMerchantPinned, isProductPinned, toggleMerchantPin, toggleProductPin } = usePinned();
@@ -51,6 +59,10 @@ const Index = () => {
   const [merchants, setMerchants] = useState<MerchantProfile[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setActiveTab(getHomeTabFromSearch(location.search));
+  }, [location.search]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -89,9 +101,27 @@ const Index = () => {
   const handleTabChange = (tab: string) => {
     if (tab === "cart") {
       navigate("/cart");
-    } else {
-      setActiveTab(tab);
+      return;
     }
+
+    if (tab === "chat") {
+      navigate("/chat");
+      return;
+    }
+
+    if (tab === "profile") {
+      navigate("/profile");
+      return;
+    }
+
+    if (tab === "dashboard") {
+      navigate("/merchant-dashboard");
+      return;
+    }
+
+    const nextTab = tab === "products" ? "products" : "merchants";
+    setActiveTab(nextTab);
+    navigate(nextTab === "products" ? "/?tab=products" : "/");
   };
 
   const renderContent = () => {
