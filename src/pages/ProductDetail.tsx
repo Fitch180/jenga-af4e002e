@@ -99,7 +99,7 @@ export default function ProductDetail() {
   const handleAddToCart = () => {
     if (!user) {
       toast.error("Please login to add items to cart");
-      navigate("/auth");
+      navigate(`/auth?redirect=${encodeURIComponent(window.location.pathname)}`);
       return;
     }
     if (isService || !product.price) {
