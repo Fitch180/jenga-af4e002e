@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useChat } from "@/hooks/useChat";
+import { BottomNav } from "@/components/BottomNav";
 
 const Chat = () => {
   const navigate = useNavigate();
@@ -30,7 +31,7 @@ const Chat = () => {
   // Redirect to auth if not logged in
   useEffect(() => {
     if (!authLoading && !user) {
-      navigate("/auth");
+      navigate(`/auth?redirect=${encodeURIComponent("/chat")}`);
     }
   }, [user, authLoading, navigate]);
 
@@ -130,6 +131,7 @@ const Chat = () => {
             </div>
           )}
         </main>
+        <BottomNav activeTab="chat" onTabChange={(tab) => { if (tab === "merchants" || tab === "products") navigate("/"); }} />
       </div>
     );
   }

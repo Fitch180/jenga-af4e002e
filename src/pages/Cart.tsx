@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useCart } from "@/contexts/CartContext";
+import { BottomNav } from "@/components/BottomNav";
 
 const Cart = () => {
   const navigate = useNavigate();
@@ -38,6 +39,7 @@ const Cart = () => {
           </p>
           <Button onClick={() => navigate("/")}>Continue Shopping</Button>
         </div>
+        <BottomNav activeTab="cart" onTabChange={(tab) => { if (tab === "merchants" || tab === "products") navigate("/"); }} />
       </div>
     );
   }
@@ -143,6 +145,7 @@ const Cart = () => {
           </Button>
         </Card>
       </main>
+      <BottomNav activeTab="cart" onTabChange={(tab) => { if (tab === "merchants" || tab === "products") navigate("/"); }} />
     </div>
   );
 };
