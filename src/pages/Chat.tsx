@@ -131,6 +131,7 @@ const Chat = () => {
             </div>
           )}
         </main>
+        <BottomNav activeTab="chat" onTabChange={(tab) => { if (tab === "merchants" || tab === "products") navigate("/"); }} />
       </div>
     );
   }

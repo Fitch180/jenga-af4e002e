@@ -39,6 +39,7 @@ const Cart = () => {
           </p>
           <Button onClick={() => navigate("/")}>Continue Shopping</Button>
         </div>
+        <BottomNav activeTab="cart" onTabChange={(tab) => { if (tab === "merchants" || tab === "products") navigate("/"); }} />
       </div>
     );
   }
