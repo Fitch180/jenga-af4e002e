@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useChat } from "@/hooks/useChat";
+import { BottomNav } from "@/components/BottomNav";
 
 const Chat = () => {
   const navigate = useNavigate();
