@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export interface CartItem {
   id: string;
@@ -26,78 +27,140 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [items, setItems] = useState<CartItem[]>(() => {
-    try {
-      const saved = localStorage.getItem("cart");
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        return Array.isArray(parsed) ? parsed : [];
-      }
-      return [];
-    } catch (error) {
-      console.error("Error loading cart from localStorage:", error);
-      return [];
-    }
-  });
+  const [items, setItems] = useState<CartItem[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    localStorage.setItem("cart", JSON.stringify(items));
-  }, [items]);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+      setUserId(session?.user?.id ?? null);
+    });
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUserId(session?.user?.id ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
-  const addToCart = (product: Omit<CartItem, "quantity">) => {
-    setItems((prev) => {
-      const existing = prev.find((item) => item.productId === product.productId);
-      if (existing) {
-        toast.success("Quantity updated in cart");
-        return prev.map((item) =>
-          item.productId === product.productId
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
+  // Load cart from DB
+  useEffect(() => {
+    if (!userId) {
+      setItems([]);
+      return;
+    }
+
+    const load = async () => {
+      const { data, error } = await supabase
+        .from("cart_items")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: true });
+
+      if (error) {
+        console.error("Error loading cart:", error);
+        return;
+      }
+
+      setItems(data.map(row => ({
+        id: row.id,
+        productId: row.product_id,
+        name: row.name,
+        price: Number(row.price),
+        priceDisplay: `${Number(row.price).toLocaleString()} Tsh`,
+        image: row.image || "",
+        merchant: row.merchant_name,
+        merchantId: row.merchant_id,
+        quantity: row.quantity,
+      })));
+    };
+
+    load();
+  }, [userId]);
+
+  const addToCart = useCallback(async (product: Omit<CartItem, "quantity">) => {
+    if (!userId) {
+      toast.error("Please log in to add items to cart");
+      return;
+    }
+
+    const existing = items.find(item => item.productId === product.productId);
+    if (existing) {
+      const newQty = existing.quantity + 1;
+      setItems(prev => prev.map(item =>
+        item.productId === product.productId ? { ...item, quantity: newQty } : item
+      ));
+      await supabase
+        .from("cart_items")
+        .update({ quantity: newQty })
+        .eq("user_id", userId)
+        .eq("product_id", product.productId);
+      toast.success("Quantity updated in cart");
+    } else {
+      const newItem: CartItem = { ...product, quantity: 1 };
+      setItems(prev => [...prev, newItem]);
+      const { data } = await supabase
+        .from("cart_items")
+        .insert({
+          user_id: userId,
+          product_id: product.productId,
+          merchant_id: product.merchantId,
+          name: product.name,
+          price: product.price,
+          image: product.image,
+          merchant_name: product.merchant,
+          quantity: 1,
+        })
+        .select("id")
+        .single();
+      if (data) {
+        setItems(prev => prev.map(item =>
+          item.productId === product.productId ? { ...item, id: data.id } : item
+        ));
       }
       toast.success("Added to cart");
-      return [...prev, { ...product, quantity: 1 }];
-    });
-  };
+    }
+  }, [userId, items]);
 
-  const removeFromCart = (productId: string) => {
-    setItems((prev) => prev.filter((item) => item.productId !== productId));
+  const removeFromCart = useCallback(async (productId: string) => {
+    if (!userId) return;
+    setItems(prev => prev.filter(item => item.productId !== productId));
+    await supabase
+      .from("cart_items")
+      .delete()
+      .eq("user_id", userId)
+      .eq("product_id", productId);
     toast.success("Removed from cart");
-  };
+  }, [userId]);
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  const updateQuantity = useCallback(async (productId: string, quantity: number) => {
     if (quantity <= 0) {
       removeFromCart(productId);
       return;
     }
-    setItems((prev) =>
-      prev.map((item) =>
-        item.productId === productId ? { ...item, quantity } : item
-      )
-    );
-  };
+    if (!userId) return;
+    setItems(prev => prev.map(item =>
+      item.productId === productId ? { ...item, quantity } : item
+    ));
+    await supabase
+      .from("cart_items")
+      .update({ quantity })
+      .eq("user_id", userId)
+      .eq("product_id", productId);
+  }, [userId, removeFromCart]);
 
-  const clearCart = () => {
+  const clearCart = useCallback(async () => {
+    if (!userId) return;
     setItems([]);
-  };
+    await supabase
+      .from("cart_items")
+      .delete()
+      .eq("user_id", userId);
+  }, [userId]);
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-  
-  const totalPrice = items.reduce((sum, item) => {
-    return sum + item.price * item.quantity;
-  }, 0);
+  const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   return (
     <CartContext.Provider
-      value={{
-        items,
-        addToCart,
-        removeFromCart,
-        updateQuantity,
-        clearCart,
-        totalItems,
-        totalPrice,
-      }}
+      value={{ items, addToCart, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice }}
     >
       {children}
     </CartContext.Provider>
