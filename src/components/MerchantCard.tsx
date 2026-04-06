@@ -66,9 +66,6 @@ export const MerchantCard = ({ name, location, image, isPinned, onPin, category,
               {category}
             </Badge>
           )}
-          {description && (
-            <p className="text-sm text-muted-foreground line-clamp-2">{description}</p>
-          )}
           <div className="flex items-center gap-2 text-muted-foreground text-sm">
             <MapPin className="w-4 h-4 flex-shrink-0" />
             <span className="truncate">{location}</span>
