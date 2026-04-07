@@ -221,6 +221,42 @@ export type Database = {
         }
         Relationships: []
       }
+      merchant_reviews: {
+        Row: {
+          created_at: string
+          id: string
+          merchant_id: string
+          merchant_response: string | null
+          order_id: string
+          rating: number
+          review_text: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          merchant_id: string
+          merchant_response?: string | null
+          order_id: string
+          rating: number
+          review_text?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          merchant_id?: string
+          merchant_response?: string | null
+          order_id?: string
+          rating?: number
+          review_text?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       merchant_tags: {
         Row: {
           created_at: string

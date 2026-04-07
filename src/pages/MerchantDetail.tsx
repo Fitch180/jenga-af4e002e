@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin, Phone, Mail, MessageSquare, Loader2, Clock } from "lucide-react";
+import { ArrowLeft, MapPin, Phone, Mail, MessageSquare, Loader2, Clock, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,8 @@ import { useChat } from "@/hooks/useChat";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useReviews } from "@/hooks/useReviews";
+import { StarRating, ReviewsList } from "@/components/ReviewsList";
 
 interface MerchantProfile {
   id: string;
@@ -45,6 +47,7 @@ const MerchantDetail = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { createQuotation } = useQuotations();
+  const { reviews, stats, loading: reviewsLoading } = useReviews(id);
   const { getOrCreateConversation } = useChat();
   const [quotationRequest, setQuotationRequest] = useState("");
   const [quotationItems, setQuotationItems] = useState("");
@@ -242,7 +245,17 @@ const MerchantDetail = () => {
             <p className="text-muted-foreground leading-relaxed">
               {merchant.description || "Quality products and services for all your needs."}
             </p>
-            <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
+            <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground flex-wrap">
+              {stats.totalReviews > 0 && (
+                <>
+                  <span className="flex items-center gap-1">
+                    <StarRating rating={Math.round(stats.averageRating)} size="w-3.5 h-3.5" />
+                    <span className="font-semibold text-foreground">{stats.averageRating}</span>
+                    <span>({stats.totalReviews} {stats.totalReviews === 1 ? 'review' : 'reviews'})</span>
+                  </span>
+                  <span className="text-border">•</span>
+                </>
+              )}
               <span className="flex items-center gap-1">
                 <span className="font-semibold text-foreground">{products.length}</span> {products.length === 1 ? 'Product' : 'Products'}
               </span>
@@ -371,6 +384,20 @@ const MerchantDetail = () => {
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Reviews Section */}
+          <div>
+            <h3 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Star className="w-5 h-5 text-accent" />
+              Customer Reviews
+              {stats.totalReviews > 0 && (
+                <span className="text-sm font-normal text-muted-foreground">
+                  ({stats.averageRating} avg · {stats.totalReviews} {stats.totalReviews === 1 ? 'review' : 'reviews'})
+                </span>
+              )}
+            </h3>
+            <ReviewsList reviews={reviews} loading={reviewsLoading} />
           </div>
         </div>
       </main>

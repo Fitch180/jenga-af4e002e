@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin, CreditCard, Clock, CheckCircle, Package, Truck, XCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, MapPin, CreditCard, Clock, CheckCircle, Package, Truck, XCircle, Loader2, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +7,9 @@ import { Separator } from "@/components/ui/separator";
 import { useOrders, OrderStatus } from "@/hooks/useOrders";
 import OrderTracker from "@/components/OrderTracker";
 import DeliveryTracker from "@/components/DeliveryTracker";
+import { ReviewForm } from "@/components/ReviewForm";
+import { StarRating } from "@/components/ReviewsList";
+import { useReviews } from "@/hooks/useReviews";
 
 const OrderDetail = () => {
   const { id } = useParams();
@@ -14,6 +17,9 @@ const OrderDetail = () => {
   const { orders, loading, getOrderById } = useOrders();
 
   const order = getOrderById(id || "");
+  const merchantId = order?.merchant_id;
+  const { submitReview, hasReviewedOrder, reviews } = useReviews(merchantId);
+  const existingReview = reviews.find(r => r.order_id === id && r.user_id === order?.user_id);
 
   if (loading) {
     return (
@@ -231,6 +237,29 @@ const OrderDetail = () => {
             </div>
           </div>
         </Card>
+
+        {/* Review Section - only for delivered orders */}
+        {order.status === "delivered" && (
+          <div className="space-y-3">
+            <h3 className="font-semibold text-foreground flex items-center gap-2">
+              <Star className="w-5 h-5 text-accent" />
+              Rate this Merchant
+            </h3>
+            {existingReview ? (
+              <Card className="p-4 space-y-2">
+                <div className="flex items-center gap-2">
+                  <StarRating rating={existingReview.rating} />
+                  <span className="text-sm text-muted-foreground">Your review</span>
+                </div>
+                {existingReview.review_text && (
+                  <p className="text-sm text-foreground">{existingReview.review_text}</p>
+                )}
+              </Card>
+            ) : (
+              <ReviewForm onSubmit={(rating, text) => submitReview(order.id, rating, text)} />
+            )}
+          </div>
+        )}
 
         <Button
           onClick={() => navigate(-1)}
