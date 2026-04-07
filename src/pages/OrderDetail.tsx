@@ -17,6 +17,9 @@ const OrderDetail = () => {
   const { orders, loading, getOrderById } = useOrders();
 
   const order = getOrderById(id || "");
+  const merchantId = order?.merchant_id;
+  const { submitReview, hasReviewedOrder, reviews } = useReviews(merchantId);
+  const existingReview = reviews.find(r => r.order_id === id && r.user_id === order?.user_id);
 
   if (loading) {
     return (
