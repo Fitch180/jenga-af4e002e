@@ -47,6 +47,7 @@ const MerchantDetail = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { createQuotation } = useQuotations();
+  const { reviews, stats, loading: reviewsLoading } = useReviews(id);
   const { getOrCreateConversation } = useChat();
   const [quotationRequest, setQuotationRequest] = useState("");
   const [quotationItems, setQuotationItems] = useState("");
