@@ -22,6 +22,7 @@ interface CartContextType {
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
+  loading: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -29,6 +30,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
@@ -44,10 +46,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (!userId) {
       setItems([]);
+      setLoading(false);
       return;
     }
 
     const load = async () => {
+      setLoading(true);
       const { data, error } = await supabase
         .from("cart_items")
         .select("*")
@@ -56,6 +60,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error("Error loading cart:", error);
+        setLoading(false);
         return;
       }
 
@@ -70,6 +75,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         merchantId: row.merchant_id,
         quantity: row.quantity,
       })));
+      setLoading(false);
     };
 
     load();
@@ -160,7 +166,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   return (
     <CartContext.Provider
-      value={{ items, addToCart, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice }}
+      value={{ items, addToCart, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice, loading }}
     >
       {children}
     </CartContext.Provider>

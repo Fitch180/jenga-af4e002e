@@ -9,6 +9,7 @@ interface PinnedContextType {
   toggleProductPin: (id: string) => void;
   isMerchantPinned: (id: string) => boolean;
   isProductPinned: (id: string) => boolean;
+  loading: boolean;
 }
 
 const PinnedContext = createContext<PinnedContextType | undefined>(undefined);
@@ -17,6 +18,7 @@ export const PinnedProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [pinnedMerchants, setPinnedMerchants] = useState<string[]>([]);
   const [pinnedProducts, setPinnedProducts] = useState<string[]>([]);
   const [userId, setUserId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   // Listen for auth changes
   useEffect(() => {
@@ -34,10 +36,12 @@ export const PinnedProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (!userId) {
       setPinnedMerchants([]);
       setPinnedProducts([]);
+      setLoading(false);
       return;
     }
 
     const load = async () => {
+      setLoading(true);
       const { data, error } = await supabase
         .from("pinned_items")
         .select("item_type, item_id")
@@ -45,11 +49,13 @@ export const PinnedProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       if (error) {
         console.error("Error loading pinned items:", error);
+        setLoading(false);
         return;
       }
 
       setPinnedMerchants(data.filter(i => i.item_type === "merchant").map(i => i.item_id));
       setPinnedProducts(data.filter(i => i.item_type === "product").map(i => i.item_id));
+      setLoading(false);
     };
 
     load();
@@ -108,6 +114,7 @@ export const PinnedProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         toggleProductPin,
         isMerchantPinned,
         isProductPinned,
+        loading,
       }}
     >
       {children}
