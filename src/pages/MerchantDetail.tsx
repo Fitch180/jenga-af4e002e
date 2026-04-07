@@ -282,12 +282,6 @@ const MerchantDetail = () => {
                   </a>
                 </div>
               )}
-              {merchant.operating_hours && (
-                <div className="flex items-center gap-3 text-foreground">
-                  <Clock className="w-5 h-5 text-accent" />
-                  <span>{getOperatingHoursDisplay(merchant.operating_hours)}</span>
-                </div>
-              )}
             </div>
           </Card>
 
