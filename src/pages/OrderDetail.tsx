@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin, CreditCard, Clock, CheckCircle, Package, Truck, XCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, MapPin, CreditCard, Clock, CheckCircle, Package, Truck, XCircle, Loader2, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +7,9 @@ import { Separator } from "@/components/ui/separator";
 import { useOrders, OrderStatus } from "@/hooks/useOrders";
 import OrderTracker from "@/components/OrderTracker";
 import DeliveryTracker from "@/components/DeliveryTracker";
+import { ReviewForm } from "@/components/ReviewForm";
+import { StarRating } from "@/components/ReviewsList";
+import { useReviews } from "@/hooks/useReviews";
 
 const OrderDetail = () => {
   const { id } = useParams();
