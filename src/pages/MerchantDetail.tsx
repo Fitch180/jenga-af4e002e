@@ -245,7 +245,17 @@ const MerchantDetail = () => {
             <p className="text-muted-foreground leading-relaxed">
               {merchant.description || "Quality products and services for all your needs."}
             </p>
-            <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
+            <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground flex-wrap">
+              {stats.totalReviews > 0 && (
+                <>
+                  <span className="flex items-center gap-1">
+                    <StarRating rating={Math.round(stats.averageRating)} size="w-3.5 h-3.5" />
+                    <span className="font-semibold text-foreground">{stats.averageRating}</span>
+                    <span>({stats.totalReviews} {stats.totalReviews === 1 ? 'review' : 'reviews'})</span>
+                  </span>
+                  <span className="text-border">•</span>
+                </>
+              )}
               <span className="flex items-center gap-1">
                 <span className="font-semibold text-foreground">{products.length}</span> {products.length === 1 ? 'Product' : 'Products'}
               </span>
