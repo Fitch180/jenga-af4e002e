@@ -242,6 +242,16 @@ const MerchantDetail = () => {
             <p className="text-muted-foreground leading-relaxed">
               {merchant.description || "Quality products and services for all your needs."}
             </p>
+            <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1">
+                <span className="font-semibold text-foreground">{products.length}</span> {products.length === 1 ? 'Product' : 'Products'}
+              </span>
+              <span className="text-border">•</span>
+              <span className="flex items-center gap-1">
+                <Clock className="w-4 h-4" />
+                {getOperatingHoursDisplay(merchant.operating_hours)}
+              </span>
+            </div>
           </div>
               
           <Card className="p-6">
@@ -270,12 +280,6 @@ const MerchantDetail = () => {
                   <a href={`mailto:${merchant.email}`} className="hover:text-accent transition-colors">
                     {merchant.email}
                   </a>
-                </div>
-              )}
-              {merchant.operating_hours && (
-                <div className="flex items-center gap-3 text-foreground">
-                  <Clock className="w-5 h-5 text-accent" />
-                  <span>{getOperatingHoursDisplay(merchant.operating_hours)}</span>
                 </div>
               )}
             </div>
