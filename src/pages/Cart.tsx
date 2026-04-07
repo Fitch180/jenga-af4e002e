@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ShoppingBag, Trash2, Plus, Minus } from "lucide-react";
+import { ArrowLeft, ShoppingBag, Trash2, Plus, Minus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -8,13 +8,32 @@ import { BottomNav } from "@/components/BottomNav";
 
 const Cart = () => {
   const navigate = useNavigate();
-  const { items, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice } = useCart();
+  const { items, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice, loading } = useCart();
 
   const handleCheckout = () => {
     if (items.length === 0) return;
     // Navigate to checkout page (to be implemented)
     navigate("/checkout");
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background pb-20">
+        <header className="sticky top-0 z-40 bg-primary text-primary-foreground shadow-lg">
+          <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
+            <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-primary-foreground/10 hover:bg-primary-foreground/20 flex items-center justify-center transition-colors">
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <h1 className="text-xl font-bold">Shopping Cart</h1>
+          </div>
+        </header>
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-8 h-8 animate-spin text-accent" />
+        </div>
+        <BottomNav />
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (
