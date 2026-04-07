@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, MapPin, Phone, Mail, MessageSquare, Loader2, Clock } from "lucide-react";
+import { ArrowLeft, MapPin, Phone, Mail, MessageSquare, Loader2, Clock, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,8 @@ import { useChat } from "@/hooks/useChat";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useReviews } from "@/hooks/useReviews";
+import { StarRating, ReviewsList } from "@/components/ReviewsList";
 
 interface MerchantProfile {
   id: string;
