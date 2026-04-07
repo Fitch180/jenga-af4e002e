@@ -385,6 +385,20 @@ const MerchantDetail = () => {
               </div>
             )}
           </div>
+
+          {/* Reviews Section */}
+          <div>
+            <h3 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Star className="w-5 h-5 text-accent" />
+              Customer Reviews
+              {stats.totalReviews > 0 && (
+                <span className="text-sm font-normal text-muted-foreground">
+                  ({stats.averageRating} avg · {stats.totalReviews} {stats.totalReviews === 1 ? 'review' : 'reviews'})
+                </span>
+              )}
+            </h3>
+            <ReviewsList reviews={reviews} loading={reviewsLoading} />
+          </div>
         </div>
       </main>
     </div>
