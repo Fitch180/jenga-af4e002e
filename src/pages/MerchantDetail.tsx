@@ -4,16 +4,12 @@ import { ArrowLeft, MapPin, Phone, Mail, MessageSquare, Loader2, Clock, Star } f
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ProductCard } from "@/components/ProductCard";
-import { useQuotations } from "@/hooks/useQuotations";
 import { useChat } from "@/hooks/useChat";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import { useReviews } from "@/hooks/useReviews";
+import QuotationRequestDialog from "@/components/QuotationRequestDialog";
 import { StarRating, ReviewsList } from "@/components/ReviewsList";
 
 interface MerchantProfile {
@@ -46,13 +42,9 @@ const MerchantDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { createQuotation } = useQuotations();
   const { reviews, stats, loading: reviewsLoading } = useReviews(id);
   const { getOrCreateConversation } = useChat();
-  const [quotationRequest, setQuotationRequest] = useState("");
-  const [quotationItems, setQuotationItems] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [merchant, setMerchant] = useState<MerchantProfile | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -119,45 +111,6 @@ const MerchantDetail = () => {
       </div>
     );
   }
-
-  const handleSendQuotation = async () => {
-    if (!quotationRequest.trim()) {
-      toast.error("Please describe your requirements");
-      return;
-    }
-
-    if (!user) {
-      navigate("/auth");
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      // Parse items from the items field
-      const items = quotationItems.split('\n').filter(line => line.trim()).map(line => {
-        const parts = line.split('-').map(p => p.trim());
-        return {
-          product_name: parts[0] || line,
-          quantity: parseInt(parts[1]) || 1,
-          specifications: parts[2] || undefined
-        };
-      });
-
-      const success = await createQuotation({
-        merchant_id: id!,
-        message: quotationRequest,
-        items: items.length > 0 ? items : [{ product_name: "General inquiry", quantity: 1 }],
-      });
-
-      if (success) {
-        setQuotationRequest("");
-        setQuotationItems("");
-        setIsDialogOpen(false);
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const openMap = () => {
     window.open(`https://www.google.com/maps/search/${encodeURIComponent(merchant.country_registered)}`, "_blank");
@@ -307,55 +260,22 @@ const MerchantDetail = () => {
               <MessageSquare className="w-4 h-4 mr-2" />
               Message
             </Button>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground">
-                  Request Quotation
-                </Button>
-              </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Request Quotation from {merchant.business_name}</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 pt-4">
-                <div className="space-y-2">
-                  <Label htmlFor="items">Items (one per line: Product - Quantity - Specs)</Label>
-                  <Textarea
-                    id="items"
-                    placeholder="e.g., Ceramic Floor Tiles - 100 - 60x60cm White&#10;Wall Tiles Premium - 50 - 30x60cm Grey"
-                    value={quotationItems}
-                    onChange={(e) => setQuotationItems(e.target.value)}
-                    rows={4}
-                    className="resize-none"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="message">Additional Details</Label>
-                  <Textarea
-                    id="message"
-                    placeholder="Describe your project, timeline, delivery requirements, etc."
-                    value={quotationRequest}
-                    onChange={(e) => setQuotationRequest(e.target.value)}
-                    rows={4}
-                    className="resize-none"
-                  />
-                </div>
-                <div className="flex justify-end gap-3">
-                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleSendQuotation}
-                    className="bg-accent hover:bg-accent/90 text-accent-foreground"
-                    disabled={!quotationRequest.trim() || isSubmitting}
-                  >
-                    {isSubmitting ? "Sending..." : "Send Request"}
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+            <Button 
+              className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
+              onClick={() => setIsDialogOpen(true)}
+            >
+              Request Quotation
+            </Button>
           </div>
+
+          <QuotationRequestDialog
+            open={isDialogOpen}
+            onOpenChange={setIsDialogOpen}
+            productName="General Inquiry"
+            productId=""
+            merchantId={merchant.id}
+            merchantName={merchant.business_name}
+          />
 
           {/* Products Catalog */}
           <div>
