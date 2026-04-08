@@ -42,13 +42,9 @@ const MerchantDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { createQuotation } = useQuotations();
   const { reviews, stats, loading: reviewsLoading } = useReviews(id);
   const { getOrCreateConversation } = useChat();
-  const [quotationRequest, setQuotationRequest] = useState("");
-  const [quotationItems, setQuotationItems] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [merchant, setMerchant] = useState<MerchantProfile | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
