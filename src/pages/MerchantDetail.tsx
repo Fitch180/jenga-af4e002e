@@ -112,45 +112,6 @@ const MerchantDetail = () => {
     );
   }
 
-  const handleSendQuotation = async () => {
-    if (!quotationRequest.trim()) {
-      toast.error("Please describe your requirements");
-      return;
-    }
-
-    if (!user) {
-      navigate("/auth");
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      // Parse items from the items field
-      const items = quotationItems.split('\n').filter(line => line.trim()).map(line => {
-        const parts = line.split('-').map(p => p.trim());
-        return {
-          product_name: parts[0] || line,
-          quantity: parseInt(parts[1]) || 1,
-          specifications: parts[2] || undefined
-        };
-      });
-
-      const success = await createQuotation({
-        merchant_id: id!,
-        message: quotationRequest,
-        items: items.length > 0 ? items : [{ product_name: "General inquiry", quantity: 1 }],
-      });
-
-      if (success) {
-        setQuotationRequest("");
-        setQuotationItems("");
-        setIsDialogOpen(false);
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   const openMap = () => {
     window.open(`https://www.google.com/maps/search/${encodeURIComponent(merchant.country_registered)}`, "_blank");
   };
