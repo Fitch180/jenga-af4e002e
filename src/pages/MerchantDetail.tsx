@@ -260,55 +260,22 @@ const MerchantDetail = () => {
               <MessageSquare className="w-4 h-4 mr-2" />
               Message
             </Button>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground">
-                  Request Quotation
-                </Button>
-              </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Request Quotation from {merchant.business_name}</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 pt-4">
-                <div className="space-y-2">
-                  <Label htmlFor="items">Items (one per line: Product - Quantity - Specs)</Label>
-                  <Textarea
-                    id="items"
-                    placeholder="e.g., Ceramic Floor Tiles - 100 - 60x60cm White&#10;Wall Tiles Premium - 50 - 30x60cm Grey"
-                    value={quotationItems}
-                    onChange={(e) => setQuotationItems(e.target.value)}
-                    rows={4}
-                    className="resize-none"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="message">Additional Details</Label>
-                  <Textarea
-                    id="message"
-                    placeholder="Describe your project, timeline, delivery requirements, etc."
-                    value={quotationRequest}
-                    onChange={(e) => setQuotationRequest(e.target.value)}
-                    rows={4}
-                    className="resize-none"
-                  />
-                </div>
-                <div className="flex justify-end gap-3">
-                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleSendQuotation}
-                    className="bg-accent hover:bg-accent/90 text-accent-foreground"
-                    disabled={!quotationRequest.trim() || isSubmitting}
-                  >
-                    {isSubmitting ? "Sending..." : "Send Request"}
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+            <Button 
+              className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
+              onClick={() => setIsDialogOpen(true)}
+            >
+              Request Quotation
+            </Button>
           </div>
+
+          <QuotationRequestDialog
+            open={isDialogOpen}
+            onOpenChange={setIsDialogOpen}
+            productName="General Inquiry"
+            productId=""
+            merchantId={merchant.id}
+            merchantName={merchant.business_name}
+          />
 
           {/* Products Catalog */}
           <div>
