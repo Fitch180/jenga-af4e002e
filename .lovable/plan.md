@@ -1,20 +1,33 @@
 
 
-## Add Document Upload to Merchant Profile Quotation Form
+## Redirect Unauthenticated Users to Login for Protected Actions
 
-**Problem**: The "Request Quotation" button on the merchant profile page uses a simple inline dialog without document upload support, while the `QuotationRequestDialog` component (used in product cards) already has full document upload capability.
-
-**Solution**: Replace the inline quotation dialog in `MerchantDetail.tsx` with the reusable `QuotationRequestDialog` component.
+**Problem**: Currently, auth guards are inconsistent across the app. Some actions redirect to `/auth`, pinning only shows a toast, and the Cart page loads even for logged-out users. The user wants all these actions to redirect to the login page.
 
 ### Changes
 
-**File: `src/pages/MerchantDetail.tsx`**
+**1. `src/contexts/PinnedContext.tsx` — Navigate to auth on pin attempt**
+- The `togglePin` function currently shows a toast when `userId` is null. Instead, it needs to navigate to `/auth?redirect=...`.
+- Since this is a context (not a component with `useNavigate`), we have two options:
+  - Pass a `navigate` callback into the toggle functions from the calling components, OR
+  - Use `window.location` for the redirect
+- Best approach: update `MerchantCard` and `ProductCard` (the callers) to check auth before calling `onPin`. This keeps the context clean and follows the existing pattern used for cart/quotation actions.
 
-1. Import `QuotationRequestDialog` component
-2. Replace the inline `<Dialog>` block (lines 310–357) with:
-   - A simple `<Button>` that sets `isDialogOpen = true`
-   - A `<QuotationRequestDialog>` component rendered below, passing `merchant.id`, `merchant.business_name`, and a generic product name like "General Inquiry"
-3. Remove the now-unused `quotationItems`, `quotationRequest`, and `handleSendQuotation` state/logic since the dialog component handles everything internally
+**2. `src/components/MerchantCard.tsx` — Add auth check before pin**
+- Import `useAuth` and `useNavigate`
+- In the pin button click handler, check if `user` exists before calling `onPin()`
+- If not logged in, redirect to `/auth?redirect=...`
 
-This ensures both the product card and merchant profile quotation buttons use the same form with document upload support.
+**3. `src/components/ProductCard.tsx` — Add auth check before pin**
+- Already imports `useAuth` and `useNavigate`
+- Add auth check in the pin button `onClick` handler, same pattern as existing cart/quotation guards
+
+**4. `src/pages/Cart.tsx` — Show login prompt for unauthenticated users**
+- Import `useAuth`
+- Check `user` state; if not logged in, render a message with a "Login" button that navigates to `/auth?redirect=/cart`
+- This replaces the empty cart or loading state for unauthenticated users
+
+**5. `src/pages/MerchantDetail.tsx` — Add auth check on "Request Quotation" button**
+- The profile-level "Request Quotation" button currently opens the dialog without checking auth
+- Add auth check before `setIsDialogOpen(true)`, redirecting to `/auth?redirect=...` if not logged in
 
