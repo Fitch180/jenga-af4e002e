@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { Pin, MapPin } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 interface MerchantCardProps {
   name: string;
@@ -15,6 +18,8 @@ interface MerchantCardProps {
 }
 
 export const MerchantCard = ({ name, location, image, isPinned, onPin, category, description }: MerchantCardProps) => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [imageLoading, setImageLoading] = useState(true);
   const [imageError, setImageError] = useState(false);
 
@@ -32,6 +37,11 @@ export const MerchantCard = ({ name, location, image, isPinned, onPin, category,
       <button
         onClick={(e) => {
           e.stopPropagation();
+          if (!user) {
+            toast.error("Please login to pin merchants");
+            navigate(`/auth?redirect=${encodeURIComponent(window.location.pathname)}`);
+            return;
+          }
           onPin?.();
         }}
         className="absolute top-3 right-3 z-10 w-8 h-8 bg-foreground/90 rounded-full flex items-center justify-center hover:bg-foreground transition-colors"

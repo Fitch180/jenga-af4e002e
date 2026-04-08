@@ -5,9 +5,11 @@ import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { useCart } from "@/contexts/CartContext";
 import { BottomNav } from "@/components/BottomNav";
+import { useAuth } from "@/hooks/useAuth";
 
 const Cart = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { items, removeFromCart, updateQuantity, clearCart, totalItems, totalPrice, loading } = useCart();
 
   const handleCheckout = () => {
@@ -15,6 +17,28 @@ const Cart = () => {
     // Navigate to checkout page (to be implemented)
     navigate("/checkout");
   };
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background pb-20">
+        <header className="sticky top-0 z-40 bg-primary text-primary-foreground shadow-lg">
+          <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
+            <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-primary-foreground/10 hover:bg-primary-foreground/20 flex items-center justify-center transition-colors">
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <h1 className="text-xl font-bold">Shopping Cart</h1>
+          </div>
+        </header>
+        <div className="max-w-4xl mx-auto px-4 py-12 text-center">
+          <ShoppingBag className="w-24 h-24 mx-auto text-muted-foreground mb-4" />
+          <h2 className="text-2xl font-bold text-foreground mb-2">Please log in</h2>
+          <p className="text-muted-foreground mb-6">You need to log in to view your cart</p>
+          <Button onClick={() => navigate("/auth?redirect=/cart")}>Log In</Button>
+        </div>
+        <BottomNav activeTab="cart" />
+      </div>
+    );
+  }
 
   if (loading) {
     return (

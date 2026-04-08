@@ -83,8 +83,13 @@ export const ProductCard = ({ id, name, price, priceDisplay, merchant, merchantI
     >
       <div className="absolute top-3 right-3 z-10 flex gap-2">
         <button
-          onClick={(e) => {
+        onClick={(e) => {
             e.stopPropagation();
+            if (!user) {
+              toast.error("Please login to pin items");
+              navigate(`/auth?redirect=${encodeURIComponent(window.location.pathname)}`);
+              return;
+            }
             onPin?.();
           }}
           className="w-8 h-8 bg-foreground/90 rounded-full flex items-center justify-center hover:bg-foreground transition-colors"

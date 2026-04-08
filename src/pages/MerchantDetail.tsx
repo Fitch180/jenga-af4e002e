@@ -262,7 +262,13 @@ const MerchantDetail = () => {
             </Button>
             <Button 
               className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
-              onClick={() => setIsDialogOpen(true)}
+              onClick={() => {
+                if (!user) {
+                  navigate(`/auth?redirect=${encodeURIComponent(window.location.pathname)}`);
+                  return;
+                }
+                setIsDialogOpen(true);
+              }}
             >
               Request Quotation
             </Button>
