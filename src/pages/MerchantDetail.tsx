@@ -4,16 +4,12 @@ import { ArrowLeft, MapPin, Phone, Mail, MessageSquare, Loader2, Clock, Star } f
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ProductCard } from "@/components/ProductCard";
-import { useQuotations } from "@/hooks/useQuotations";
 import { useChat } from "@/hooks/useChat";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 import { useReviews } from "@/hooks/useReviews";
+import QuotationRequestDialog from "@/components/QuotationRequestDialog";
 import { StarRating, ReviewsList } from "@/components/ReviewsList";
 
 interface MerchantProfile {
