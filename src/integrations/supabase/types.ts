@@ -228,6 +228,7 @@ export type Database = {
           merchant_id: string
           merchant_response: string | null
           order_id: string
+          photo_urls: string[] | null
           rating: number
           review_text: string | null
           updated_at: string
@@ -239,6 +240,7 @@ export type Database = {
           merchant_id: string
           merchant_response?: string | null
           order_id: string
+          photo_urls?: string[] | null
           rating: number
           review_text?: string | null
           updated_at?: string
@@ -250,6 +252,7 @@ export type Database = {
           merchant_id?: string
           merchant_response?: string | null
           order_id?: string
+          photo_urls?: string[] | null
           rating?: number
           review_text?: string | null
           updated_at?: string
@@ -282,6 +285,7 @@ export type Database = {
           document_url: string | null
           id: string
           image_url: string | null
+          read_at: string | null
           sender_id: string
           sender_type: string
           text: string | null
@@ -292,6 +296,7 @@ export type Database = {
           document_url?: string | null
           id?: string
           image_url?: string | null
+          read_at?: string | null
           sender_id: string
           sender_type: string
           text?: string | null
@@ -302,6 +307,7 @@ export type Database = {
           document_url?: string | null
           id?: string
           image_url?: string | null
+          read_at?: string | null
           sender_id?: string
           sender_type?: string
           text?: string | null
@@ -533,6 +539,42 @@ export type Database = {
         }
         Relationships: []
       }
+      product_variants: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          price_adjustment: number
+          product_id: string
+          stock: number
+          updated_at: string
+          variant_type: string
+          variant_value: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          price_adjustment?: number
+          product_id: string
+          stock?: number
+          updated_at?: string
+          variant_type: string
+          variant_value: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          price_adjustment?: number
+          product_id?: string
+          stock?: number
+          updated_at?: string
+          variant_type?: string
+          variant_value?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           category: string
@@ -619,6 +661,33 @@ export type Database = {
         }
         Relationships: []
       }
+      push_subscriptions: {
+        Row: {
+          auth_key: string
+          created_at: string
+          endpoint: string
+          id: string
+          p256dh: string
+          user_id: string
+        }
+        Insert: {
+          auth_key: string
+          created_at?: string
+          endpoint: string
+          id?: string
+          p256dh: string
+          user_id: string
+        }
+        Update: {
+          auth_key?: string
+          created_at?: string
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       quotation_items: {
         Row: {
           created_at: string
@@ -663,6 +732,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      quotation_messages: {
+        Row: {
+          created_at: string
+          id: string
+          message: string | null
+          proposed_price: number | null
+          quotation_id: string
+          sender_id: string
+          sender_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          proposed_price?: number | null
+          quotation_id: string
+          sender_id: string
+          sender_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string | null
+          proposed_price?: number | null
+          quotation_id?: string
+          sender_id?: string
+          sender_type?: string
+        }
+        Relationships: []
       }
       quotations: {
         Row: {
