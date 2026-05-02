@@ -18,6 +18,7 @@ import BulkUploadDialog from "@/components/merchant/BulkUploadDialog";
 import OrderProcessingTab from "@/components/merchant/OrderProcessingTab";
 import QuotationProcessingTab from "@/components/merchant/QuotationProcessingTab";
 import VolumeDiscountManager from "@/components/merchant/VolumeDiscountManager";
+import DashboardAnalytics from "@/components/DashboardAnalytics";
 import { useMerchantChat } from "@/hooks/useMerchantChat";
 import { useProducts, Product, ProductFormData } from "@/hooks/useProducts";
 import { useUserRole } from "@/hooks/useUserRole";
