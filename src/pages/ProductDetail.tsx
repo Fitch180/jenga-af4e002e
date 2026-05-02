@@ -8,8 +8,10 @@ import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import VolumeDiscountBadge from "@/components/VolumeDiscountBadge";
+import ProductVariantSelector from "@/components/ProductVariantSelector";
 import QuotationRequestDialog from "@/components/QuotationRequestDialog";
 import { useAuth } from "@/hooks/useAuth";
+import { ProductVariant } from "@/hooks/useProductVariants";
 
 interface Product {
   id: string;
@@ -38,22 +40,18 @@ export default function ProductDetail() {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [quotationDialogOpen, setQuotationDialogOpen] = useState(false);
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
 
   useEffect(() => {
     const fetchProduct = async () => {
       if (!id) return;
-
       setLoading(true);
       try {
         const { data, error } = await supabase
           .from("products")
-          .select(`
-            *,
-            merchant_profiles (id, business_name)
-          `)
+          .select(`*, merchant_profiles (id, business_name)`)
           .eq("id", id)
           .single();
-
         if (error) throw error;
         setProduct(data);
       } catch (error) {
@@ -62,7 +60,6 @@ export default function ProductDetail() {
         setLoading(false);
       }
     };
-
     fetchProduct();
   }, [id]);
   
@@ -90,8 +87,10 @@ export default function ProductDetail() {
     );
   }
 
+  const basePrice = product.price || 0;
+  const adjustedPrice = basePrice + (selectedVariant?.price_adjustment || 0);
   const displayPrice = product.price 
-    ? `${product.price.toLocaleString()} Tsh` 
+    ? `${adjustedPrice.toLocaleString()} Tsh` 
     : "Request Quote";
 
   const isService = product.item_type === "service";
@@ -107,12 +106,14 @@ export default function ProductDetail() {
       return;
     }
 
+    const variantSuffix = selectedVariant ? ` (${selectedVariant.variant_type}: ${selectedVariant.variant_value})` : "";
+
     for (let i = 0; i < quantity; i++) {
       addToCart({
-        id: `${product.id}-${Date.now()}-${i}`,
+        id: `${product.id}-${selectedVariant?.id || "base"}-${Date.now()}-${i}`,
         productId: product.id,
-        name: product.name,
-        price: product.price,
+        name: product.name + variantSuffix,
+        price: adjustedPrice,
         priceDisplay: displayPrice,
         image: product.image_url || "/placeholder.svg",
         merchant: product.merchant_profiles?.business_name || "Unknown",
@@ -127,7 +128,6 @@ export default function ProductDetail() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      {/* Header */}
       <header className="bg-primary text-primary-foreground sticky top-0 z-10 shadow-md">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -136,10 +136,7 @@ export default function ProductDetail() {
             </button>
             <h1 className="text-xl font-bold">Product Details</h1>
           </div>
-          <button
-            onClick={() => navigate("/cart")}
-            className="relative hover:opacity-80 transition-opacity"
-          >
+          <button onClick={() => navigate("/cart")} className="relative hover:opacity-80 transition-opacity">
             <ShoppingCart className="w-6 h-6" />
             {totalItems > 0 && (
               <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 bg-accent text-accent-foreground text-xs">
@@ -154,11 +151,7 @@ export default function ProductDetail() {
         {/* Product Images */}
         <Card className="p-0 overflow-hidden">
           <div className="aspect-video bg-muted">
-            <img 
-              src={productImages[selectedImage] || "/placeholder.svg"} 
-              alt={product.name}
-              className="w-full h-full object-cover"
-            />
+            <img src={productImages[selectedImage] || "/placeholder.svg"} alt={product.name} className="w-full h-full object-cover" />
           </div>
           {productImages.length > 1 && (
             <div className="flex gap-2 p-4 overflow-x-auto">
@@ -183,9 +176,7 @@ export default function ProductDetail() {
             <div className="flex items-center gap-2 mb-2">
               <h2 className="text-2xl font-bold text-foreground">{product.name}</h2>
               {product.item_type === "service" && (
-                <span className="text-xs bg-jenga-orange/10 text-jenga-orange px-2 py-0.5 rounded-full font-medium">
-                  Service
-                </span>
+                <span className="text-xs bg-jenga-orange/10 text-jenga-orange px-2 py-0.5 rounded-full font-medium">Service</span>
               )}
             </div>
             <p className="text-sm text-muted-foreground">{product.category}</p>
@@ -195,13 +186,15 @@ export default function ProductDetail() {
 
           {/* Volume Discounts */}
           {product.price && (
-            <VolumeDiscountBadge
-              productId={product.id}
-              basePrice={product.price}
-              quantity={quantity}
-              showTiers={true}
-            />
+            <VolumeDiscountBadge productId={product.id} basePrice={adjustedPrice} quantity={quantity} showTiers={true} />
           )}
+
+          {/* Product Variants */}
+          <ProductVariantSelector
+            productId={product.id}
+            onVariantSelect={setSelectedVariant}
+            selectedVariantId={selectedVariant?.id || null}
+          />
 
           {product.description && (
             <div className="pt-4 border-t border-border">
@@ -223,42 +216,33 @@ export default function ProductDetail() {
             </div>
           )}
 
-          {/* Quantity Selector - Only for products with price (not services) */}
+          {/* Quantity Selector */}
           {product.price && !isService && (
             <div className="pt-4 border-t border-border">
               <p className="text-sm text-muted-foreground mb-3">Quantity</p>
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-3 border border-border rounded-lg p-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={decrementQuantity}
-                    className="h-8 w-8 p-0"
-                  >
+                  <Button variant="ghost" size="sm" onClick={decrementQuantity} className="h-8 w-8 p-0">
                     <Minus className="w-4 h-4" />
                   </Button>
                   <span className="w-12 text-center font-semibold">{quantity}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={incrementQuantity}
-                    className="h-8 w-8 p-0"
-                  >
+                  <Button variant="ghost" size="sm" onClick={incrementQuantity} className="h-8 w-8 p-0">
                     <Plus className="w-4 h-4" />
                   </Button>
                 </div>
                 <span className="text-sm text-muted-foreground">per {product.unit}</span>
               </div>
+              {/* Line total */}
+              <p className="text-sm text-muted-foreground mt-2">
+                Total: <span className="font-bold text-foreground">{(adjustedPrice * quantity).toLocaleString()} Tsh</span>
+              </p>
             </div>
           )}
 
           {/* Add to Cart or Request Quotation */}
           {isService || !product.price ? (
             <>
-              <Button
-                onClick={() => setQuotationDialogOpen(true)}
-                className="w-full bg-accent hover:bg-accent/90 text-accent-foreground h-12 text-lg"
-              >
+              <Button onClick={() => setQuotationDialogOpen(true)} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground h-12 text-lg">
                 Request Quotation
               </Button>
               <QuotationRequestDialog
@@ -271,12 +255,9 @@ export default function ProductDetail() {
               />
             </>
           ) : (
-            <Button
-              onClick={handleAddToCart}
-              className="w-full bg-accent hover:bg-accent/90 text-accent-foreground h-12 text-lg"
-            >
+            <Button onClick={handleAddToCart} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground h-12 text-lg">
               <ShoppingCart className="w-5 h-5 mr-2" />
-              Add to Cart
+              Add to Cart — {(adjustedPrice * quantity).toLocaleString()} Tsh
             </Button>
           )}
         </Card>
