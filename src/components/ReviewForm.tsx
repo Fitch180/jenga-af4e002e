@@ -1,11 +1,13 @@
-import { useState } from "react";
-import { Star } from "lucide-react";
+import { useState, useRef } from "react";
+import { Star, Camera, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface ReviewFormProps {
-  onSubmit: (rating: number, reviewText: string) => Promise<boolean>;
+  onSubmit: (rating: number, reviewText: string, photoUrls?: string[]) => Promise<boolean>;
 }
 
 export const ReviewForm = ({ onSubmit }: ReviewFormProps) => {
@@ -13,14 +15,53 @@ export const ReviewForm = ({ onSubmit }: ReviewFormProps) => {
   const [hoveredRating, setHoveredRating] = useState(0);
   const [reviewText, setReviewText] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [photos, setPhotos] = useState<{ file: File; preview: string }[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const remaining = 3 - photos.length;
+    const newFiles = files.slice(0, remaining).map(file => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+    setPhotos(prev => [...prev, ...newFiles]);
+    if (e.target) e.target.value = "";
+  };
+
+  const removePhoto = (index: number) => {
+    setPhotos(prev => {
+      URL.revokeObjectURL(prev[index].preview);
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
+  const uploadPhotos = async (): Promise<string[]> => {
+    const urls: string[] = [];
+    for (const photo of photos) {
+      const ext = photo.file.name.split(".").pop();
+      const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from("review-images").upload(path, photo.file);
+      if (error) { toast.error("Failed to upload photo"); continue; }
+      const { data } = supabase.storage.from("review-images").getPublicUrl(path);
+      urls.push(data.publicUrl);
+    }
+    return urls;
+  };
 
   const handleSubmit = async () => {
     if (rating === 0) return;
     setSubmitting(true);
-    const success = await onSubmit(rating, reviewText);
+    let photoUrls: string[] = [];
+    if (photos.length > 0) {
+      photoUrls = await uploadPhotos();
+    }
+    const success = await onSubmit(rating, reviewText, photoUrls);
     if (success) {
       setRating(0);
       setReviewText("");
+      photos.forEach(p => URL.revokeObjectURL(p.preview));
+      setPhotos([]);
     }
     setSubmitting(false);
   };
@@ -54,6 +95,44 @@ export const ReviewForm = ({ onSubmit }: ReviewFormProps) => {
         rows={3}
         className="resize-none"
       />
+      
+      {/* Photo Upload */}
+      <div className="space-y-2">
+        {photos.length > 0 && (
+          <div className="flex gap-2 flex-wrap">
+            {photos.map((photo, idx) => (
+              <div key={idx} className="relative w-16 h-16 rounded-lg overflow-hidden">
+                <img src={photo.preview} alt="" className="w-full h-full object-cover" />
+                <button
+                  onClick={() => removePhoto(idx)}
+                  className="absolute top-0.5 right-0.5 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        {photos.length < 3 && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+            className="text-xs"
+          >
+            <Camera className="w-3 h-3 mr-1" />
+            Add Photo ({photos.length}/3)
+          </Button>
+        )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handlePhotoSelect}
+        />
+      </div>
+
       <Button
         onClick={handleSubmit}
         disabled={rating === 0 || submitting}

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useQuotations, QuotationStatus } from "@/hooks/useQuotations";
 import QuotationTracker from "@/components/QuotationTracker";
+import QuotationNegotiationThread from "@/components/QuotationNegotiationThread";
 import { useState } from "react";
 
 const Quotations = () => {
@@ -269,6 +270,10 @@ const Quotations = () => {
                               </div>
                             </>
                           )}
+
+                          {/* Negotiation Thread */}
+                          <Separator />
+                          <QuotationNegotiationThread quotationId={quotation.id} senderType="user" />
                         </div>
                       )}
                     </Card>

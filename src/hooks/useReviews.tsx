@@ -80,7 +80,7 @@ export const useReviews = (merchantId?: string) => {
     fetchReviews();
   }, [fetchReviews]);
 
-  const submitReview = async (orderId: string, rating: number, reviewText: string) => {
+  const submitReview = async (orderId: string, rating: number, reviewText: string, photoUrls?: string[]) => {
     if (!user || !merchantId) {
       toast.error("Please log in to submit a review");
       return false;
@@ -94,7 +94,8 @@ export const useReviews = (merchantId?: string) => {
         order_id: orderId,
         rating,
         review_text: reviewText.trim() || null,
-      });
+        photo_urls: photoUrls && photoUrls.length > 0 ? photoUrls : [],
+      } as any);
 
     if (error) {
       if (error.code === "23505") {

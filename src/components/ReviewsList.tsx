@@ -30,9 +30,7 @@ export const ReviewsList = ({ reviews, loading }: ReviewsListProps) => {
   }
 
   if (reviews.length === 0) {
-    return (
-      <p className="text-muted-foreground text-center py-4">No reviews yet</p>
-    );
+    return <p className="text-muted-foreground text-center py-4">No reviews yet</p>;
   }
 
   return (
@@ -41,6 +39,8 @@ export const ReviewsList = ({ reviews, loading }: ReviewsListProps) => {
         const name = review.profiles
           ? `${review.profiles.first_name}${review.profiles.last_name ? " " + review.profiles.last_name.charAt(0) + "." : ""}`
           : "Anonymous";
+
+        const photoUrls = (review as any).photo_urls as string[] | null;
 
         return (
           <Card key={review.id} className="p-4 space-y-2">
@@ -60,6 +60,16 @@ export const ReviewsList = ({ reviews, loading }: ReviewsListProps) => {
             </div>
             {review.review_text && (
               <p className="text-sm text-foreground leading-relaxed">{review.review_text}</p>
+            )}
+            {/* Review Photos */}
+            {photoUrls && photoUrls.length > 0 && (
+              <div className="flex gap-2 flex-wrap">
+                {photoUrls.map((url, idx) => (
+                  <a key={idx} href={url} target="_blank" rel="noopener noreferrer">
+                    <img src={url} alt="Review" className="w-20 h-20 object-cover rounded-lg hover:opacity-80 transition-opacity" />
+                  </a>
+                ))}
+              </div>
             )}
             {review.merchant_response && (
               <div className="bg-muted/50 rounded-lg p-3 mt-2">
