@@ -561,33 +561,11 @@ const MerchantDashboard = () => {
 
           {/* Analytics Tab */}
           <TabsContent value="analytics" className="space-y-4 mt-6">
-            <Card className="p-6">
-              <h2 className="text-xl font-bold text-foreground mb-4">Sales Analytics</h2>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Total Orders</span>
-                  <span className="font-bold text-foreground">{orders.length}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Completed Orders</span>
-                  <span className="font-bold text-foreground">
-                    {orders.filter(o => o.status === "delivered").length}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Total Revenue</span>
-                  <span className="font-bold text-accent">
-                    {orders.filter(o => o.status === "delivered").reduce((sum, o) => sum + o.total_amount, 0).toLocaleString()} Tsh
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Pending Quotations</span>
-                  <span className="font-bold text-foreground">
-                    {quotations.filter(q => q.status === "pending" || q.status === "reviewed").length}
-                  </span>
-                </div>
-              </div>
-            </Card>
+            <DashboardAnalytics
+              orders={orders}
+              products={products}
+              quotationsCount={quotations.length}
+            />
           </TabsContent>
 
           {/* Settings Tab */}
