@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from "react";
-import { ArrowLeft, Send, Paperclip, Image as ImageIcon } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { ArrowLeft, Send, Paperclip, Image as ImageIcon, Check, CheckCheck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { useChat } from "@/hooks/useChat";
 import { BottomNav } from "@/components/BottomNav";
+import { supabase } from "@/integrations/supabase/client";
 
 const Chat = () => {
   const navigate = useNavigate();
@@ -27,36 +28,70 @@ const Chat = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const documentInputRef = useRef<HTMLInputElement>(null);
+  const [isTyping, setIsTyping] = useState(false);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Redirect to auth if not logged in
   useEffect(() => {
     if (!authLoading && !user) {
       navigate(`/auth?redirect=${encodeURIComponent("/chat")}`);
     }
   }, [user, authLoading, navigate]);
 
-  // Auto-select conversation from URL params
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const conversationId = params.get("conversation");
-    
     if (conversationId && conversations.length > 0) {
       setSelectedConversation(conversationId);
     }
   }, [conversations]);
 
-  // Load messages when conversation is selected
   useEffect(() => {
     if (selectedConversation) {
       loadMessages(selectedConversation);
       markAsRead(selectedConversation);
+      // Mark messages as read in DB
+      supabase
+        .from("messages")
+        .update({ read_at: new Date().toISOString() } as any)
+        .eq("conversation_id", selectedConversation)
+        .eq("sender_type", "merchant")
+        .is("read_at", null)
+        .then(() => {});
     }
   }, [selectedConversation]);
 
-  // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Typing indicator via realtime presence
+  useEffect(() => {
+    if (!selectedConversation || !user) return;
+    const channel = supabase.channel(`typing-${selectedConversation}`);
+    
+    channel.on("presence", { event: "sync" }, () => {
+      const state = channel.presenceState();
+      const others = Object.values(state).flat().filter((p: any) => p.user_id !== user.id && p.typing);
+      setIsTyping(others.length > 0);
+    }).subscribe(async (status) => {
+      if (status === "SUBSCRIBED") {
+        await channel.track({ user_id: user.id, typing: false });
+      }
+    });
+
+    return () => { supabase.removeChannel(channel); };
+  }, [selectedConversation, user]);
+
+  const handleTyping = useCallback(() => {
+    if (!selectedConversation || !user) return;
+    const channel = supabase.channel(`typing-${selectedConversation}`);
+    channel.track({ user_id: user.id, typing: true });
+
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => {
+      channel.track({ user_id: user.id, typing: false });
+    }, 2000);
+  }, [selectedConversation, user]);
 
   if (authLoading || loading) {
     return (
@@ -68,23 +103,18 @@ const Chat = () => {
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !selectedConversation) return;
-
     await sendMessage(selectedConversation, newMessage);
     setNewMessage("");
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && selectedConversation) {
-      sendImage(selectedConversation, file);
-    }
+    if (file && selectedConversation) sendImage(selectedConversation, file);
   };
 
   const handleDocumentUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file && selectedConversation) {
-      sendDocument(selectedConversation, file);
-    }
+    if (file && selectedConversation) sendDocument(selectedConversation, file);
   };
 
   if (selectedConversation === null) {
@@ -115,9 +145,7 @@ const Chat = () => {
                       <AvatarFallback>{conv.merchant_name[0]}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-foreground truncate">
-                        {conv.merchant_name}
-                      </h3>
+                      <h3 className="font-semibold text-foreground truncate">{conv.merchant_name}</h3>
                       <p className="text-sm text-muted-foreground truncate">
                         {conv.last_message || "Start a conversation"}
                       </p>
@@ -142,100 +170,77 @@ const Chat = () => {
     <div className="min-h-screen bg-background flex flex-col">
       <header className="sticky top-0 z-40 bg-primary text-primary-foreground shadow-lg">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-4">
-          <button
-            onClick={() => setSelectedConversation(null)}
-            className="hover:opacity-80"
-          >
+          <button onClick={() => setSelectedConversation(null)} className="hover:opacity-80">
             <ArrowLeft className="w-6 h-6" />
           </button>
           <Avatar className="w-10 h-10">
             <AvatarImage src={conversation?.merchant_image || undefined} alt={conversation?.merchant_name} />
             <AvatarFallback>{conversation?.merchant_name[0]}</AvatarFallback>
           </Avatar>
-          <h1 className="text-xl font-bold">{conversation?.merchant_name}</h1>
+          <div>
+            <h1 className="text-xl font-bold">{conversation?.merchant_name}</h1>
+            {isTyping && (
+              <p className="text-xs text-primary-foreground/70 animate-pulse">typing...</p>
+            )}
+          </div>
         </div>
       </header>
 
       <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-6 overflow-y-auto">
         <div className="space-y-4">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${message.sender_type === "user" ? "justify-end" : "justify-start"}`}
-            >
-              <div
-                className={`max-w-[75%] rounded-lg p-3 ${
-                  message.sender_type === "user"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-foreground"
-                }`}
-              >
-                {message.text && <p className="text-sm">{message.text}</p>}
-                {message.image_url && (
-                  <img
-                    src={message.image_url}
-                    alt="Shared"
-                    className="rounded mt-2 max-w-full"
-                  />
-                )}
-                {message.document_url && (
-                  <a
-                    href={message.document_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 mt-2 p-2 bg-background/10 rounded hover:bg-background/20"
-                  >
-                    <Paperclip className="w-4 h-4" />
-                    <span className="text-xs">{message.text || "Document"}</span>
-                  </a>
-                )}
-                <p className="text-xs opacity-70 mt-1">
-                  {new Date(message.created_at).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </p>
+          {messages.map((message) => {
+            const isUser = message.sender_type === "user";
+            const readAt = (message as any).read_at;
+            return (
+              <div key={message.id} className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
+                <div className={`max-w-[75%] rounded-lg p-3 ${
+                  isUser ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
+                }`}>
+                  {message.text && <p className="text-sm">{message.text}</p>}
+                  {message.image_url && (
+                    <img src={message.image_url} alt="Shared" className="rounded mt-2 max-w-full" />
+                  )}
+                  {message.document_url && (
+                    <a href={message.document_url} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-2 mt-2 p-2 bg-background/10 rounded hover:bg-background/20"
+                    >
+                      <Paperclip className="w-4 h-4" />
+                      <span className="text-xs">{message.text || "Document"}</span>
+                    </a>
+                  )}
+                  <div className="flex items-center gap-1 justify-end mt-1">
+                    <p className="text-xs opacity-70">
+                      {new Date(message.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </p>
+                    {isUser && (
+                      readAt 
+                        ? <CheckCheck className="w-3.5 h-3.5 text-blue-400" />
+                        : <Check className="w-3.5 h-3.5 opacity-50" />
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
           <div ref={messagesEndRef} />
         </div>
       </main>
 
-      <input
-        ref={imageInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={handleImageUpload}
-      />
-      <input
-        ref={documentInputRef}
-        type="file"
-        className="hidden"
-        onChange={handleDocumentUpload}
-      />
+      <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+      <input ref={documentInputRef} type="file" className="hidden" onChange={handleDocumentUpload} />
 
       <div className="sticky bottom-0 bg-card border-t border-border">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => imageInputRef.current?.click()}
-            >
+            <Button variant="ghost" size="icon" onClick={() => imageInputRef.current?.click()}>
               <ImageIcon className="w-5 h-5" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => documentInputRef.current?.click()}
-            >
+            <Button variant="ghost" size="icon" onClick={() => documentInputRef.current?.click()}>
               <Paperclip className="w-5 h-5" />
             </Button>
             <Input
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
+              onChange={(e) => { setNewMessage(e.target.value); handleTyping(); }}
               onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
               placeholder="Type a message..."
               className="flex-1"
