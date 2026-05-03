@@ -774,6 +774,8 @@ export type Database = {
       }
       quotation_messages: {
         Row: {
+          attachment_name: string | null
+          attachment_url: string | null
           created_at: string
           id: string
           message: string | null
@@ -783,6 +785,8 @@ export type Database = {
           sender_type: string
         }
         Insert: {
+          attachment_name?: string | null
+          attachment_url?: string | null
           created_at?: string
           id?: string
           message?: string | null
@@ -792,6 +796,8 @@ export type Database = {
           sender_type: string
         }
         Update: {
+          attachment_name?: string | null
+          attachment_url?: string | null
           created_at?: string
           id?: string
           message?: string | null
