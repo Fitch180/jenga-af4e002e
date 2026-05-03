@@ -311,6 +311,10 @@ const MerchantDashboard = () => {
                 </Badge>
               )}
             </TabsTrigger>
+            <TabsTrigger value="payments">
+              <CreditCard className="w-4 h-4 mr-1" />
+              Payments
+            </TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="settings">
               <Settings className="w-4 h-4 mr-1" />
