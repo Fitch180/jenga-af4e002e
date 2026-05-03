@@ -125,6 +125,45 @@ export type Database = {
         }
         Relationships: []
       }
+      merchant_payment_methods: {
+        Row: {
+          account_name: string
+          account_number: string
+          created_at: string
+          id: string
+          is_active: boolean
+          merchant_id: string
+          method_type: string
+          provider_name: string | null
+          receiver_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_name: string
+          account_number: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          merchant_id: string
+          method_type: string
+          provider_name?: string | null
+          receiver_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_name?: string
+          account_number?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          merchant_id?: string
+          method_type?: string
+          provider_name?: string | null
+          receiver_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       merchant_profile_tags: {
         Row: {
           created_at: string
