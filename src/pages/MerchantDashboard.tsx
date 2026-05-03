@@ -574,6 +574,11 @@ const MerchantDashboard = () => {
             />
           </TabsContent>
 
+          {/* Payments Tab */}
+          <TabsContent value="payments" className="space-y-4 mt-6">
+            <PaymentMethodsTab merchantId={merchantProfile?.id || null} />
+          </TabsContent>
+
           {/* Settings Tab */}
           <TabsContent value="settings" className="space-y-6 mt-6">
             <h2 className="text-xl font-bold text-foreground">Shop Settings</h2>
