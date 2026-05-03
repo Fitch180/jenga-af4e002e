@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Package, ShoppingCart, TrendingUp, Plus, Edit, Trash2, FileText, Upload, Send, MessageSquare, Settings, MapPin, Phone, Mail, Globe, Clock, Truck, CheckCircle, XCircle, DollarSign, Tag } from "lucide-react";
+import { ArrowLeft, Package, ShoppingCart, TrendingUp, Plus, Edit, Trash2, FileText, Upload, Send, MessageSquare, Settings, MapPin, Phone, Mail, Globe, Clock, Truck, CheckCircle, XCircle, DollarSign, Tag, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,6 +19,7 @@ import OrderProcessingTab from "@/components/merchant/OrderProcessingTab";
 import QuotationProcessingTab from "@/components/merchant/QuotationProcessingTab";
 import VolumeDiscountManager from "@/components/merchant/VolumeDiscountManager";
 import DashboardAnalytics from "@/components/DashboardAnalytics";
+import PaymentMethodsTab from "@/components/merchant/PaymentMethodsTab";
 import { useMerchantChat } from "@/hooks/useMerchantChat";
 import { useProducts, Product, ProductFormData } from "@/hooks/useProducts";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -310,6 +311,10 @@ const MerchantDashboard = () => {
                 </Badge>
               )}
             </TabsTrigger>
+            <TabsTrigger value="payments">
+              <CreditCard className="w-4 h-4 mr-1" />
+              Payments
+            </TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="settings">
               <Settings className="w-4 h-4 mr-1" />
@@ -567,6 +572,11 @@ const MerchantDashboard = () => {
               products={products}
               quotationsCount={quotations.length}
             />
+          </TabsContent>
+
+          {/* Payments Tab */}
+          <TabsContent value="payments" className="space-y-4 mt-6">
+            <PaymentMethodsTab merchantId={merchantProfile?.id || null} />
           </TabsContent>
 
           {/* Settings Tab */}
